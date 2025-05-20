@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Allan-Nava/go-bard/configuration"
-	"github.com/Allan-Nava/go-bard/env"
-	"github.com/Allan-Nava/go-bard/gobard"
+	"github.com/Allan-Nava/go-gemini/configuration"
+	"github.com/Allan-Nava/go-gemini/env"
+	"github.com/Allan-Nava/go-gemini/gogemini/
 )
 
 func TestMain(m *testing.M) {
@@ -20,10 +20,10 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func GetGoBard() gobard.IGoBard {
+func GoGetGemini() gogemini.IGoGemini {
 	//
 	configuration := configuration.GetConfiguration()
-	g := gobard.NewGoBoard(
+	g := gogemini.NewGoBoard(
 		configuration,
 	)
 	//

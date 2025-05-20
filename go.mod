@@ -1,6 +1,6 @@
-module github.com/Allan-Nava/go-bard
+module github.com/Allan-Nava/go-gemini
 
-go 1.18
+go 1.21
 
 require (
 	github.com/caarlos0/env/v6 v6.10.1 // indirect

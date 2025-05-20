@@ -19,7 +19,7 @@ A powerful golang sdk library for interacting with the Bard API easily
 
 
 ### Contributing
-We welcome contributions to this project. Please see the [contributing guidelines](https://github.com/Allan-Nava/go-bard/blob/master/CONTRIBUTING.md) for more information.
+We welcome contributions to this project. Please see the [contributing guidelines](https://github.com/Allan-Nava/go-gemini/blob/master/CONTRIBUTING.md) for more information.
 
 ### License
-This project is licensed under the MIT License, Version 2.0. See the [LICENSE](https://github.com/Allan-Nava/go-bard/blob/master/LICENSE) file for more information.
+This project is licensed under the MIT License, Version 2.0. See the [LICENSE](https://github.com/Allan-Nava/go-gemini/blob/master/LICENSE) file for more information.

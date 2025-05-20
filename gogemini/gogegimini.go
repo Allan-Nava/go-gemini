@@ -1,26 +1,27 @@
-package gobard
+package gogemini
 
 import (
 	"log"
-	"github.com/Allan-Nava/go-bard/configuration"
-	"github.com/Allan-Nava/go-bard/constants"
+
+	"github.com/Allan-Nava/go-gemini/configuration"
+	"github.com/Allan-Nava/go-gemini/constants"
 	"github.com/go-resty/resty/v2"
 )
 
-type IGoBard interface {
+type IGoGemini interface {
 	// api
 	GetAnswer() error
 	//
 }
 
-type gobard struct {
+type gemini struct {
 	configuration *configuration.Configuration
 	restClient    *resty.Client
-	sNlM0e string 
+	sNlM0e        string
 }
 
-func NewGoBoard(configuration *configuration.Configuration) IGoBard {
-	g := &gobard{
+func NewGoGemini(configuration *configuration.Configuration) IGoGemini {
+	g := &gemini{
 		configuration: configuration,
 	}
 	g.restClient = resty.New()
@@ -47,7 +48,7 @@ func NewGoBoard(configuration *configuration.Configuration) IGoBard {
 
 // Resty Methods
 
-func (o *gobard) restyPost(url string, body interface{}) (*resty.Response, error) {
+func (o *gemini) restyPost(url string, body interface{}) (*resty.Response, error) {
 	resp, err := o.restClient.R().
 		SetHeader("Accept", "application/json").
 		SetBody(body).
@@ -59,7 +60,7 @@ func (o *gobard) restyPost(url string, body interface{}) (*resty.Response, error
 	return resp, nil
 }
 
-func (o *gobard) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
+func (o *gemini) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
 	resp, err := o.restClient.R().
 		SetQueryParams(queryParams).
 		Get(url)
@@ -72,7 +73,7 @@ func (o *gobard) restyGet(url string, queryParams map[string]string) (*resty.Res
 
 // internal api
 // _get_snim0e
-func(o *gobard) getSnim0e() error {
+func (o *gemini) getSnim0e() error {
 	resp, err := o.restyGet("/", nil)
 	if err != nil {
 		return err
@@ -80,4 +81,4 @@ func(o *gobard) getSnim0e() error {
 	log.Println("resp ", resp)
 	// re.search(r"SNlM0e\":\"(.*?)\"", resp.text).group(1)
 	return nil
-} 
+}
