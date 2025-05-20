@@ -6,7 +6,7 @@ import (
 
 	"github.com/Allan-Nava/go-gemini/configuration"
 	"github.com/Allan-Nava/go-gemini/env"
-	"github.com/Allan-Nava/go-gemini/gogemini/
+	"github.com/Allan-Nava/go-gemini/gogemini"
 )
 
 func TestMain(m *testing.M) {
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 func GoGetGemini() gogemini.IGoGemini {
 	//
 	configuration := configuration.GetConfiguration()
-	g := gogemini.NewGoBoard(
+	g := gogemini.NewGoGemini(
 		configuration,
 	)
 	//
