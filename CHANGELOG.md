@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [v0.4.0] — 2026-09-29
+
+Streaming, multi-turn chat, generation parameters and retries: the SDK experience before v1.0.0.
+Everything is additive; the one change in behaviour is that transient failures are now retried.
+
 ### Added
 - Streaming: `Client.GenerateContentStream` and `Client.GenerateStream` return an
   `iter.Seq2[*Response, error]` over `:streamGenerateContent?alt=sse`. Breaking out of the loop closes
@@ -95,7 +100,8 @@ First working client, on the official Gemini API.
 
 - Skeleton of a Google Bard client (session cookie and `SNlM0e` token). Never sent a request.
 
-[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.3.0...main
+[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.4.0...main
+[v0.4.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/Allan-Nava/go-gemini/releases/tag/v0.1.0

@@ -319,7 +319,7 @@ td .cmd.stub { color: var(--warn); background: color-mix(in srgb, var(--warn) 13
   <div class="hero">
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow"><span class="dot"></span>v0.3.0 &middot; MIT</span>
+        <span class="eyebrow"><span class="dot"></span>v0.4.0 &middot; MIT</span>
         <h1>Talk to <span class="grad">Gemini</span><br>from Go.</h1>
         <p class="lede">A small client for the official Gemini API. One API key, one call, typed errors, and nothing outside the standard library.</p>
         <div class="cta">
@@ -357,7 +357,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
     <div class="wrap">
       <p class="kicker">Status</p>
       <h2>Where the SDK stands</h2>
-      <p class="section-lede"><a href="https://github.com/Allan-Nava/go-gemini/releases/tag/v0.3.0">v0.3.0</a> is out: the API key never leaves the API host, invalid options fail early, and the API is ready to freeze for v1.0. Pre-1.0, so minor versions may still change the API.</p>
+      <p class="section-lede"><a href="https://github.com/Allan-Nava/go-gemini/releases/tag/v0.4.0">v0.4.0</a> is out: streaming, multi-turn chat, generation parameters and automatic retries. Next is v1.0.0, which freezes the API.</p>
       <div class="features">
         <div class="card reveal">
           <span class="pill ok">Works</span>
@@ -379,11 +379,11 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
         </div>
         <div class="card reveal">
           <span class="pill next">Next</span>
-          <h3>v0.4.0</h3>
+          <h3>v1.0.0</h3>
           <ul>
-            <li>Streaming as a Go iterator, multi-turn chat</li>
-            <li>Generation parameters and system instruction</li>
-            <li>Retry with backoff on 429 and 5xx</li>
+            <li>The exported API is frozen</li>
+            <li>CI rejects incompatible changes</li>
+            <li>1.x releases only add</li>
           </ul>
         </div>
       </div>
@@ -509,7 +509,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
         <ol class="step-list">
           <li><b>v0.2.0 &middot; first working client</b><span>Released 2026-09-29.</span></li>
           <li><b>v0.3.0 &middot; hardening</b><span>Released 2026-09-29.</span></li>
-          <li><b>v0.4.0 &middot; SDK experience</b><span>Streaming, chat, generation parameters, retries, lint.</span></li>
+          <li><b>v0.4.0 &middot; SDK experience</b><span>Released 2026-09-29: streaming, chat, generation parameters, retries.</span></li>
           <li><b>v1.0.0 &middot; stable API</b><span>Groundwork done: API reviewed, compatibility check in CI, releases from the changelog.</span></li>
         </ol>
         <div class="window reveal">

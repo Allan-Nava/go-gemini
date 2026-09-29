@@ -4,7 +4,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/Allan-Nava/go-gemini/gogemini.svg)](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini)
 
 A small Go client for the [official Gemini API](https://ai.google.dev/api). Standard library only:
-the module has no dependencies. Latest release: **v0.3.0** ([changelog](CHANGELOG.md));
+the module has no dependencies. Latest release: **v0.4.0** ([changelog](CHANGELOG.md));
 pre-1.0, so minor versions may still change the API.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
@@ -161,6 +161,12 @@ set -a && source ./.env && set +a && go run ./examples/generate "Explain gorouti
 
 Flags: `-model`, `-timeout`, `-stream` (print the answer as it arrives) and `-system` (system
 instruction). The model and token usage are printed on stderr.
+
+## Upgrading from v0.3.0
+
+Nothing to change in your code: v0.4.0 only adds. One behaviour is new: 408, 429 and 5xx replies and
+network errors are now retried (4 attempts, 1 s up to 30 s), so a call can take longer before it
+returns an error. For the old single attempt, pass `WithRetry(gogemini.RetryPolicy{MaxAttempts: 1})`.
 
 ## Upgrading from v0.2.0
 

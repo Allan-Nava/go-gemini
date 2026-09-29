@@ -9,7 +9,7 @@ audit: [`audit-v0.2.0-2026-09-29.md`](audit-v0.2.0-2026-09-29.md).
 > item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
 ```
-  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (rilasciata)     v0.4.0            v1.0.0
+  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (rilasciata)     v0.4.0 (rilasciata) v1.0.0
   scheletro Bard ──► primo client funzionante ──► hardening + pulizia ──► esperienza SDK ──► API stabile
                      API ufficiale, 0 dipendenze   audit v0.2.0, prep 1.0   streaming, chat    API congelata
 ```
@@ -86,7 +86,7 @@ restano quelli originali, perché sono stabili.
 > **Prova reale 2026-09-29**, eseguita a mano dall'utente con `examples/generate`: `pong` da `gemini-3.5-flash-lite`
 > (9 token) con `User-Agent` e regola sui redirect della v0.3.0. `gorelease` in CI: `DefaultModel` rimosso, suggerita v0.3.0.
 
-## v0.4.0 — Esperienza SDK (codice completo, in attesa del tag)
+## v0.4.0 — Esperienza SDK (rilasciata, 2026-09-29)
 
 **Obiettivo:** coprire i casi d'uso comuni oltre la singola domanda: streaming, conversazioni, parametri, retry.
 
@@ -95,8 +95,12 @@ restano quelli originali, perché sono stabili.
 - [x] <!-- id:v030-generation-config --> **Parametri di generazione**: `temperature`, `maxOutputTokens`, system instruction.
 - [x] <!-- id:v030-retry --> **Retry con backoff** su 429/5xx, configurabile; `APIError` espone i `details` di Google (`RetryInfo.retryDelay`, `ErrorInfo.reason`) — audit v0.2.0 A8.
 - [x] <!-- id:v030-lint-deps --> **Lint e dipendenze**: `golangci-lint` in CI; tenere una sola tra Renovate e Dependabot.
-- [ ] <!-- id:v040-release --> **Rilascio v0.4.0**: prova reale a mano (`examples/generate` con e senza `-stream`), changelog
+- [x] <!-- id:v040-release --> **Rilascio v0.4.0**: prova reale a mano (`examples/generate` con e senza `-stream`), changelog
       con data, `version` = `0.4.0`, tag `v0.4.0` — la release la crea il workflow.
+
+> **Prova reale 2026-09-29**, eseguita a mano dall'utente: `-stream` su `gemini-3.5-flash-lite` → `1`…`5` in più chunk,
+> uso token dall'ultimo evento (22). Sul default `gemini-3.8-flash` di nuovo `503 UNAVAILABLE` (alta domanda): il client
+> ha ritentato 4 volte con backoff e poi restituito l'ultimo `*APIError`, come previsto.
 
 > **Avanzamento 2026-09-29**: `GenerateContentStream`/`GenerateStream` (`iter.Seq2`, SSE), `NewChat`/`Send`/`History`,
 > `GenerationConfig` + `SystemInstruction` con default del client, `WithRetry`/`RetryPolicy` (default 4 tentativi,
@@ -122,6 +126,7 @@ restano quelli originali, perché sono stabili.
 ## Storico
 
 - **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v0.4.0** (2026-09-29) — streaming, chat, parametri di generazione, retry con backoff, `golangci-lint`. Vedi `CHANGELOG.md`.
 - **v0.3.0** (2026-09-29) — hardening dall'audit v0.2.0 (la chiave resta sull'host dell'API), preparazione della v1.0.0. Vedi `CHANGELOG.md`.
 - **v0.2.0** (2026-09-29) — client per l'API ufficiale, modulo senza dipendenze, package Bard rimossi. Vedi `CHANGELOG.md`.
 - **v0.1.x** (2026-09-29) — audit, `CLAUDE.md`, sito GitHub Pages statico, resty v2.17.2 / `x/net` v0.59.0,
