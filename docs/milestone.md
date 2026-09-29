@@ -14,7 +14,7 @@ attività di dettaglio: [`backlog.md`](backlog.md).
                       Go 1.26, 0 vuln             API ufficiale + test          streaming, chat
 ```
 
-## v0.2.0 — Primo client funzionante (codice completo, in attesa del tag)
+## v0.2.0 — Primo client funzionante (rilasciata, 2026-09-29)
 
 **Obiettivo:** `go get` + una API key → una risposta di Gemini in cinque righe di codice, con test che
 non toccano la rete.
@@ -38,13 +38,15 @@ milestone: non è documentato e non è pensato per uso automatizzato.
       browser (`Host`, `Origin`, UA Chrome 91), package `env` e file `env/.env.*`; `.gitignore` con `.env*`.
 - [x] <!-- id:v020-docs --> **Docs allineate**: README (uso, auth, variabili), `docs/index.html` (hero, Quickstart, tabella API,
       diagramma auth senza "planned"), CLAUDE.md, backlog.
-- [ ] <!-- id:v020-release --> **Rilascio v0.2.0**: prova reale a mano con una chiave di test
+- [x] <!-- id:v020-release --> **Rilascio v0.2.0**: prova reale a mano con una chiave di test
       (`go run ./examples/generate "…"`), poi `CHANGELOG.md` da *Unreleased* a data, tag `v0.2.0` e
       release GitHub con le note del changelog. Si spunta dopo il tag: chiude la milestone.
 
 > **Avanzamento 2026-09-29**: codice completo. Client in `gogemini/client.go` + `generate.go` (solo stdlib,
 > modulo senza dipendenze), test `httptest`, package Bard rimossi, `examples/generate`, `CHANGELOG.md`.
-> Resta solo `v020-release` (prova reale + tag), che è dell'utente.
+> Prova reale 2026-09-29, eseguita a mano dall'utente con `examples/generate`: risposta corretta da
+> `gemini-3.5-flash-lite`; sul default `gemini-3.8-flash` un `503 UNAVAILABLE` temporaneo (alta domanda),
+> gestito come `*APIError` — motiva `v030-retry`. Tag `v0.2.0`.
 
 ### Fuori scope
 
@@ -78,6 +80,7 @@ Streaming, chat multi-turno, immagini/file, tool calling, Vertex AI, endpoint we
 ## Storico
 
 - **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v0.2.0** (2026-09-29) — client per l'API ufficiale, modulo senza dipendenze, package Bard rimossi. Vedi `CHANGELOG.md`.
 - **v0.1.x** (2026-09-29) — audit, `CLAUDE.md`, sito GitHub Pages statico, resty v2.17.2 / `x/net` v0.59.0,
   floor Go 1.26, CI con vet/race/govulncheck.
 - Le milestone precedenti (stabilizzare l'integrazione Bard, estrarre `SNlM0e`) sono **superate** dalla

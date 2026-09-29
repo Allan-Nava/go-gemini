@@ -4,8 +4,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/Allan-Nava/go-gemini/gogemini.svg)](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini)
 
 A small Go client for the [official Gemini API](https://ai.google.dev/api). Standard library only:
-the module has no dependencies. **Pre-release**: milestone [v0.2.0](docs/milestone.md) is
-complete in code and waiting for its release tag.
+the module has no dependencies. Latest release: **v0.2.0** ([changelog](CHANGELOG.md));
+pre-1.0, so minor versions may still change the API.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
 [docs/audit-2026-09-29.md](docs/audit-2026-09-29.md) · [Backlog](docs/backlog.md) ·

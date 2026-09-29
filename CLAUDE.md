@@ -1,6 +1,6 @@
 # CLAUDE.md — go-gemini
 
-SDK Go (`github.com/Allan-Nava/go-gemini`, package `gogemini`) per l'**API ufficiale Gemini**: `gogemini.New(opts...)` → `Client.GenerateContent`, chiave nell'header `x-goog-api-key`. **Modulo senza dipendenze** (solo stdlib, `go.sum` vuoto). **Stato: v0.2.0 completa nel codice, non ancora taggata**; il vecchio client Bard (cookie `__Secure-1PSID` + token `SNlM0e`) è stato rimosso — breaking change, vedi `CHANGELOG.md`. Prova manuale: `go run ./examples/generate "…"` con `GEMINI_API_KEY`. Sito: GitHub Pages `https://allan-nava.github.io/go-gemini/` (HTML statico in `docs/`, deploy via `.github/workflows/jekyll-gh-pages.yml`). Contesto storico: `docs/audit-2026-09-29.md`.
+SDK Go (`github.com/Allan-Nava/go-gemini`, package `gogemini`) per l'**API ufficiale Gemini**: `gogemini.New(opts...)` → `Client.GenerateContent`, chiave nell'header `x-goog-api-key`. **Modulo senza dipendenze** (solo stdlib, `go.sum` vuoto). **Stato: v0.2.0 rilasciata (2026-09-29)**, prossima milestone v0.3.0; il vecchio client Bard (cookie `__Secure-1PSID` + token `SNlM0e`) è stato rimosso — breaking change, vedi `CHANGELOG.md`. Prova manuale: `go run ./examples/generate "…"` con `GEMINI_API_KEY`. Sito: GitHub Pages `https://allan-nava.github.io/go-gemini/` (HTML statico in `docs/`, deploy via `.github/workflows/jekyll-gh-pages.yml`). Contesto storico: `docs/audit-2026-09-29.md`.
 
 ## Regole di lavoro (SEMPRE)
 

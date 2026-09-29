@@ -4,7 +4,9 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/) (pre-1.0: minor versions may break the API).
 
-## [Unreleased] — v0.2.0
+## [Unreleased]
+
+## [v0.2.0] — 2026-09-29
 
 First working client, on the official Gemini API.
 
@@ -34,5 +36,6 @@ First working client, on the official Gemini API.
 
 - Skeleton of a Google Bard client (session cookie and `SNlM0e` token). Never sent a request.
 
-[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.1.0...main
+[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.2.0...main
+[v0.2.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/Allan-Nava/go-gemini/releases/tag/v0.1.0
