@@ -4,7 +4,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/Allan-Nava/go-gemini/gogemini.svg)](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini)
 
 A small Go client for the [official Gemini API](https://ai.google.dev/api). Standard library only:
-the module has no dependencies. Latest release: **v0.2.0** ([changelog](CHANGELOG.md));
+the module has no dependencies. Latest release: **v0.3.0** ([changelog](CHANGELOG.md));
 pre-1.0, so minor versions may still change the API.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
@@ -109,6 +109,12 @@ set -a && source ./.env && set +a && go run ./examples/generate "Explain gorouti
 ```
 
 `-model` and `-timeout` flags are available; the model and token usage are printed on stderr.
+
+## Upgrading from v0.2.0
+
+The exported `DefaultModel` constant is gone: read the model with `client.Model()`, or pin one with
+`WithModel`. `New` now also fails for an invalid base URL, a timeout `<= 0` or an empty model, and
+redirects to another host are refused with `ErrRedirectOtherHost`.
 
 ## Upgrading from v0.1.0
 

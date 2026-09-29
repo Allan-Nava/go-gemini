@@ -9,7 +9,7 @@ audit: [`audit-v0.2.0-2026-09-29.md`](audit-v0.2.0-2026-09-29.md).
 > item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
 ```
-  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (da taggare)     v0.4.0            v1.0.0
+  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (rilasciata)     v0.4.0            v1.0.0
   scheletro Bard ──► primo client funzionante ──► hardening + pulizia ──► esperienza SDK ──► API stabile
                      API ufficiale, 0 dipendenze   audit v0.2.0, prep 1.0   streaming, chat    API congelata
 ```
@@ -59,7 +59,7 @@ Streaming, chat multi-turno, immagini/file, tool calling, Vertex AI, endpoint we
 3. Nessuna chiave, cookie o risposta reale nei file tracciati (`git grep` + `git log -p`).
 4. Tag `v0.2.0` con note di rilascio che segnalano il **breaking change** (`NewGoGemini`/`GetAnswer` rimossi).
 
-## v0.3.0 — Hardening sicurezza e pulizia (codice completo, in attesa del tag)
+## v0.3.0 — Hardening sicurezza e pulizia (rilasciata, 2026-09-29)
 
 **Obiettivo:** chiudere i finding dell'audit v0.2.0: la chiave non esce mai dall'host previsto, le opzioni sbagliate falliscono subito, il repository contiene solo ciò che serve.
 
@@ -80,8 +80,11 @@ restano quelli originali, perché sono stabili.
 - [x] <!-- id:v021-ci-pin --> **Strumenti CI fissati** (R5): versione esplicita di `govulncheck` (e di `staticcheck`, aggiunto come step).
 - [x] <!-- id:v021-docs-align --> **Documentazione allineata** (R2, R7): `AGENTS.md` coerente con `CLAUDE.md`; README "Try it" con il flusso `.env`
       sicuro (`printf … "$(pbpaste)"` + controllo del formato prima di `source`).
-- [ ] <!-- id:v021-release --> **Rilascio v0.3.0**: release GitHub di `v0.2.0` recuperata (R1, fatto); prova reale con una chiave;
+- [x] <!-- id:v021-release --> **Rilascio v0.3.0**: release GitHub di `v0.2.0` recuperata (R1, fatto); prova reale con una chiave;
       tag `v0.3.0` — la release la crea il workflow `release.yml` dal changelog.
+
+> **Prova reale 2026-09-29**, eseguita a mano dall'utente con `examples/generate`: `pong` da `gemini-3.5-flash-lite`
+> (9 token) con `User-Agent` e regola sui redirect della v0.3.0. `gorelease` in CI: `DefaultModel` rimosso, suggerita v0.3.0.
 
 ## v0.4.0 — Esperienza SDK
 
@@ -111,6 +114,7 @@ restano quelli originali, perché sono stabili.
 ## Storico
 
 - **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v0.3.0** (2026-09-29) — hardening dall'audit v0.2.0 (la chiave resta sull'host dell'API), preparazione della v1.0.0. Vedi `CHANGELOG.md`.
 - **v0.2.0** (2026-09-29) — client per l'API ufficiale, modulo senza dipendenze, package Bard rimossi. Vedi `CHANGELOG.md`.
 - **v0.1.x** (2026-09-29) — audit, `CLAUDE.md`, sito GitHub Pages statico, resty v2.17.2 / `x/net` v0.59.0,
   floor Go 1.26, CI con vet/race/govulncheck.
