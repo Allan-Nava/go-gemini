@@ -66,11 +66,15 @@ jobs:
         with:
           go-version: stable
       - name: gorelease against the latest tag
+        # The report goes to RUNNER_TEMP: a file in the checkout makes gorelease refuse to run
+        # ("uncommitted changes"), and pipefail keeps that failure from being hidden by tee.
         run: |
+          set -o pipefail
           base=$(git describe --tags --abbrev=0 --match 'v*.*.*' 2>/dev/null || true)
           if [ -z "$base" ]; then echo "no release tag yet"; exit 0; fi
-          go run golang.org/x/exp/cmd/gorelease@v0.0.0-20260908205506-85c1c2202aba -base="$base" | tee gorelease.txt
-          if grep -q '^## incompatible changes' gorelease.txt; then
+          report="$RUNNER_TEMP/gorelease.txt"
+          go run golang.org/x/exp/cmd/gorelease@v0.0.0-20260908205506-85c1c2202aba -base="$base" | tee "$report"
+          if grep -q '^## incompatible changes' "$report"; then
             case "$base" in
               v0.*) echo "::warning::incompatible API changes since $base (allowed before v1.0.0)";;
               *)    echo "::error::incompatible API changes since $base"; exit 1;;
