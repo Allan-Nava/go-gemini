@@ -66,14 +66,24 @@ jobs:
         with:
           go-version: stable
       - name: gorelease against the latest tag
-        # The report goes to RUNNER_TEMP: a file in the checkout makes gorelease refuse to run
-        # ("uncommitted changes"), and pipefail keeps that failure from being hidden by tee.
+        # Decide from the report, not from gorelease's exit code: it exits 1 whenever it cannot
+        # suggest a version, e.g. right after a tag while the Go proxy has not seen it yet.
+        # On a tagged commit, compare with the previous tag. The report goes to RUNNER_TEMP:
+        # a file in the checkout makes gorelease refuse to run ("uncommitted changes").
         run: |
-          set -o pipefail
-          base=$(git describe --tags --abbrev=0 --match 'v*.*.*' 2>/dev/null || true)
-          if [ -z "$base" ]; then echo "no release tag yet"; exit 0; fi
+          if [ -n "$(git tag --points-at HEAD --list 'v*.*.*')" ]; then
+            base=$(git describe --tags --abbrev=0 --match 'v*.*.*' HEAD^ 2>/dev/null || true)
+          else
+            base=$(git describe --tags --abbrev=0 --match 'v*.*.*' 2>/dev/null || true)
+          fi
+          if [ -z "$base" ]; then echo "no earlier release tag"; exit 0; fi
           report="$RUNNER_TEMP/gorelease.txt"
-          go run golang.org/x/exp/cmd/gorelease@v0.0.0-20260908205506-85c1c2202aba -base="$base" | tee "$report"
+          rc=0
+          go run golang.org/x/exp/cmd/gorelease@v0.0.0-20260908205506-85c1c2202aba -base="$base" > "$report" 2>&1 || rc=$?
+          cat "$report"
+          if ! grep -q '^# summary' "$report"; then
+            echo "::error::gorelease produced no report (exit $rc)"; exit 1
+          fi
           if grep -q '^## incompatible changes' "$report"; then
             case "$base" in
               v0.*) echo "::warning::incompatible API changes since $base (allowed before v1.0.0)";;
