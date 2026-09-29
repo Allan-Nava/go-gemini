@@ -1,37 +1,33 @@
 # AGENTS.md — go-gemini
 
-Questo file definisce le regole operative per gli agenti AI (Copilot, Claude, altri tool AI) quando interagiscono con il repository `go-gemini`.
+Regole operative per gli agenti AI (Copilot, Claude, altri) che lavorano su `go-gemini`, un SDK Go
+per l'**API ufficiale Gemini**, senza dipendenze esterne. Le regole complete, le trappole note e lo
+stato del progetto sono in [`CLAUDE.md`](CLAUDE.md): questo file ne è il riassunto e non deve
+contraddirlo.
 
 ## Regole di lavoro (SEMPRE)
 
-- **MAI `git push`**: l'agente suggerisce modifiche, ma non esegue il push. Lo user decide quando eseguire il push.
-- **MAI `Co-Authored-By`** nei commit: l'agente non dovrebbe aggiungere se stesso come autore.
-- **Non creare commit automatici**: fornire patch e suggerimenti strutturati, non commettere direttamente.
-- **Documentare le scelte**: ogni modifica proposta deve includere il motivo, i file modificati e come testarli.
-- **Nessun segreto nel codice**: non generare o inserire cookie, token, password o dati sensibili nel repository.
-- **Verifiche**: indicare sempre i comandi di verifica locali, come `go test ./...`, `gofmt` e `go vet ./...`.
+- **Mai `git push`, tag o release**: li fa l'utente. L'agente può preparare i comandi pronti da lanciare.
+- **Commit solo se richiesto**, mai `Co-Authored-By` né footer di attribuzione.
+- **Nessun segreto**: mai chiavi API, cookie o token in codice, test, esempi, log o issue. Esempi con
+  placeholder (`YOUR_API_KEY`); la chiave reale sta in `GEMINI_API_KEY` o in un `.env` (ignorato da git).
+- **Verifiche prima di dire "fatto"**: `gofmt -l .`, `go vet ./...`, `go test -race ./...`,
+  `go mod tidy -diff`, `staticcheck`, `govulncheck`.
+- **Documentare**: ogni modifica visibile agli utenti aggiorna `README.md`, `docs/index.html` e
+  `CHANGELOG.md` (*Unreleased*) nello stesso commit.
+- **Pianificare in `docs/milestone.md`**: è la fonte di verità delle milestone e delle issue GitHub
+  (workflow *Milestone sync*). Non modificare quelle issue su GitHub.
+- **Cancellare file solo su richiesta esplicita** dell'utente.
 
 ## Pattern operativi
 
-- **Modifiche al package**:
-  - aggiornare `README.md` quando cambia l'uso pubblico o l'autenticazione.
-  - mantenere gli esempi coerenti con l'API esposta.
-- **Bugfix e miglioramenti**:
-  - spiegare cosa causa il problema e come la soluzione lo risolve.
-  - non introdurre modifiche a file non necessari.
-- **Struttura del repository**:
-  - il repository è un SDK Go, quindi la logica deve restare leggera e focalizzata.
-  - non aggiungere tool di deployment, pipeline o infrastruttura non rilevanti al progetto.
-
-## Cosa evitare
-
-- Non proporre `git push` o qualsiasi azione che alteri il repo remoto.
-- Non generare file con dati sensibili o esempi reali di chiavi API o sessioni Google.
-- Non cambiare le dipendenze in `go.mod` senza una valida ragione e relativa documentazione.
-- Non suggerire l'aggiunta di librerie pesanti se il problema può essere risolto con il codice esistente.
+- Codice di libreria: restituire `error` (sentinel esportati), mai `panic`, `log.Fatal` o log su stdout.
+- Test senza rete: `httptest` + `WithBaseURL`; nessun test chiama Google.
+- Niente dipendenze nuove senza una ragione scritta: il modulo è solo standard library.
+- Non reintrodurre lo scraping del web client di Gemini/Bard (cookie, `SNlM0e`).
 
 ## Puntatori
 
-- `README.md` è il documento di riferimento per l'utente finale.
-- `CLAUDE.md` descrive le regole generali di lavoro con il repository.
-- Se serve una guida di contributo più ampia, proporre l'aggiunta di `CONTRIBUTING.md` e/o un file `docs/` dedicato.
+- [`CLAUDE.md`](CLAUDE.md) — regole complete e trappole.
+- [`README.md`](README.md) — uso e autenticazione per l'utente finale.
+- [`docs/milestone.md`](docs/milestone.md) · [`CHANGELOG.md`](CHANGELOG.md) · audit in `docs/audit-*.md`.

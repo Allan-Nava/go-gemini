@@ -4,7 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/) (pre-1.0: minor versions may break the API).
 
-## [Unreleased]
+## [Unreleased] — v0.2.1
+
+Hardening from the [v0.2.0 audit](docs/audit-v0.2.0-2026-09-29.md).
+
+### Security
+- The API key is no longer sent to another host on a redirect. `net/http` copies custom headers,
+  `x-goog-api-key` included, to any redirect target; redirects to a different host or scheme are now
+  refused with `ErrRedirectOtherHost`. A client passed with `WithHTTPClient` and no `CheckRedirect`
+  gets the same rule, on a copy.
+- `WithBaseURL` only accepts HTTPS (plain HTTP for loopback hosts only), so the key is never sent in clear.
+
+### Added
+- `ErrInvalidBaseURL`, `ErrInvalidTimeout`, `ErrEmptyModel` from `New`; `ErrEmptyRequest` for an empty
+  prompt, a `nil` request or no contents, returned without sending anything.
+- `User-Agent: go-gemini/<version>` on every request, and the `Version` constant.
+
+### Changed
+- `WithTimeout` with a duration `<= 0` now makes `New` fail, instead of silently removing the timeout.
+- `APIError.Message` is truncated to about 1 KiB; successful replies are read up to 32 MiB and drained,
+  so connections are reused.
+- CI runs `staticcheck`; `staticcheck` and `govulncheck` versions are pinned.
+
+### Removed
+- `Dockerfile` (it could not build a library) and `.vscode/`. The Bard-era backlog moved to `docs/archive/`.
 
 ## [v0.2.0] — 2026-09-29
 

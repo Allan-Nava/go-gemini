@@ -22,3 +22,6 @@ go.work
 
 # Local secrets: never commit an API key
 .env*
+
+# Editor settings
+.vscode/

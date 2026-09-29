@@ -9,10 +9,17 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 )
 
-// maxErrorBody caps how much of an error reply is read.
-const maxErrorBody = 1 << 20
+const (
+	// maxErrorBody caps how much of an error reply is read.
+	maxErrorBody = 1 << 20
+	// maxResponseBody caps how much of a successful reply is read.
+	maxResponseBody = 32 << 20
+	// maxErrorMessage caps APIError.Message, so a proxy's HTML page does not flood the logs.
+	maxErrorMessage = 1024
+)
 
 // Part is one piece of a message. Only text is supported for now.
 type Part struct {
@@ -85,14 +92,22 @@ func (e *APIError) Error() string {
 }
 
 // GenerateContent sends a single user prompt and returns the model's reply.
+// An empty or blank prompt returns ErrEmptyRequest without sending anything.
 func (c *Client) GenerateContent(ctx context.Context, prompt string) (*Response, error) {
+	if strings.TrimSpace(prompt) == "" {
+		return nil, ErrEmptyRequest
+	}
 	return c.Generate(ctx, &GenerateContentRequest{
 		Contents: []Content{{Role: "user", Parts: []Part{{Text: prompt}}}},
 	})
 }
 
 // Generate sends a full request, for callers that build the contents themselves.
+// A nil request or one with no contents returns ErrEmptyRequest without sending anything.
 func (c *Client) Generate(ctx context.Context, req *GenerateContentRequest) (*Response, error) {
+	if req == nil || len(req.Contents) == 0 {
+		return nil, ErrEmptyRequest
+	}
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("gogemini: encode request: %w", err)
@@ -105,18 +120,23 @@ func (c *Client) Generate(ctx context.Context, req *GenerateContentRequest) (*Re
 	httpReq.Header.Set("Content-Type", "application/json")
 	// The key goes in a header, not in the URL, so it stays out of logs and error messages.
 	httpReq.Header.Set("x-goog-api-key", c.apiKey)
+	httpReq.Header.Set("User-Agent", userAgent)
 
 	httpResp, err := c.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("gogemini: %w", err)
 	}
-	defer httpResp.Body.Close()
+	defer func() {
+		// Drain what is left so the connection can be reused.
+		io.Copy(io.Discard, io.LimitReader(httpResp.Body, maxErrorBody))
+		httpResp.Body.Close()
+	}()
 
 	if httpResp.StatusCode < 200 || httpResp.StatusCode > 299 {
 		return nil, decodeError(httpResp)
 	}
 	var out Response
-	if err := json.NewDecoder(httpResp.Body).Decode(&out); err != nil {
+	if err := json.NewDecoder(io.LimitReader(httpResp.Body, maxResponseBody)).Decode(&out); err != nil {
 		return nil, fmt.Errorf("gogemini: decode response: %w", err)
 	}
 	return &out, nil
@@ -139,5 +159,18 @@ func decodeError(resp *http.Response) error {
 			apiErr.Message = http.StatusText(resp.StatusCode)
 		}
 	}
+	apiErr.Message = truncate(apiErr.Message, maxErrorMessage)
 	return apiErr
+}
+
+// truncate shortens s to at most n bytes without splitting a UTF-8 character.
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	cut := n
+	for cut > 0 && !utf8.RuneStart(s[cut]) {
+		cut--
+	}
+	return s[:cut] + "…"
 }

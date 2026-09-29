@@ -8,8 +8,8 @@ the module has no dependencies. Latest release: **v0.2.0** ([changelog](CHANGELO
 pre-1.0, so minor versions may still change the API.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
-[docs/audit-2026-09-29.md](docs/audit-2026-09-29.md) · [Backlog](docs/backlog.md) ·
-[Milestones](docs/milestone.md)
+[latest audit](docs/audit-v0.2.0-2026-09-29.md) · [Milestones](docs/milestone.md) ·
+[Changelog](CHANGELOG.md)
 
 ## Install
 
@@ -51,9 +51,9 @@ Options for `gogemini.New`:
 |---|---|---|
 | `WithAPIKey(key)` | `$GEMINI_API_KEY` | API key; wins over the environment |
 | `WithModel(name)` | `gemini-3.8-flash` | model; a `models/` prefix is accepted |
-| `WithTimeout(d)` | 60 s | timeout of the default HTTP client |
+| `WithTimeout(d)` | 60 s | timeout of the default HTTP client; must be positive |
 | `WithHTTPClient(c)` | — | your own `*http.Client` (transport, TLS, timeouts) |
-| `WithBaseURL(u)` | `https://generativelanguage.googleapis.com` | proxy or test server |
+| `WithBaseURL(u)` | `https://generativelanguage.googleapis.com` | proxy or test server; HTTPS only, plain HTTP allowed for loopback |
 
 `GenerateContent(ctx, prompt)` sends one user prompt; `Generate(ctx, req)` takes a full
 `GenerateContentRequest`. `Response.Text()` returns the first candidate's text, and is empty when
@@ -61,7 +61,10 @@ the prompt was blocked (`Response.PromptFeedback.BlockReason`).
 
 ### Errors
 
-- `gogemini.ErrMissingAPIKey` from `New` when neither `WithAPIKey` nor `GEMINI_API_KEY` gives a key.
+- From `New`: `ErrMissingAPIKey` (no key from `WithAPIKey` or `GEMINI_API_KEY`), `ErrInvalidBaseURL`,
+  `ErrInvalidTimeout`, `ErrEmptyModel`.
+- `ErrEmptyRequest` for an empty prompt, a `nil` request or no contents: nothing is sent.
+- `ErrRedirectOtherHost` when the server redirects to another host: the redirect is not followed.
 - `*gogemini.APIError` for any non-2xx reply, with the HTTP code, Google's status
   (e.g. `RESOURCE_EXHAUSTED`) and message:
 
@@ -76,7 +79,10 @@ if errors.As(err, &apiErr) && apiErr.StatusCode == 429 {
 
 Create a key in [Google AI Studio](https://aistudio.google.com/apikey) and put it in
 `GEMINI_API_KEY`. The client sends it in the `x-goog-api-key` header, never in the URL, so it does
-not end up in access logs or error messages.
+not end up in access logs or error messages. It only goes over HTTPS, and never to another host:
+`net/http` would copy the header to any redirect target, so redirects to a different host are
+refused. With `WithHTTPClient`, a client without `CheckRedirect` gets the same rule; if you set your
+own `CheckRedirect`, keeping the key on the right host is up to it.
 
 Never commit a key: `.env*` files are git-ignored. The Bard-era approach (copying the
 `__Secure-1PSID` browser cookie) is not supported: a session cookie grants access to the whole
@@ -84,9 +90,22 @@ Google account, and the web endpoint is undocumented and not meant for automated
 
 ## Try it
 
+Copy your key from Google AI Studio, then write it to a git-ignored `.env` straight from the
+clipboard, so it never appears on screen or in shell history:
+
 ```bash
-export GEMINI_API_KEY=...   # from Google AI Studio
-go run ./examples/generate "Explain goroutines in one sentence"
+printf 'GEMINI_API_KEY=%s\n' "$(pbpaste | tr -d '[:space:]')" > .env && chmod 600 .env
+```
+
+Check the format before loading it (`1` means fine). A file without the `GEMINI_API_KEY=` prefix
+would make the shell print the key in an error:
+
+```bash
+grep -c '^GEMINI_API_KEY=.' .env
+```
+
+```bash
+set -a && source ./.env && set +a && go run ./examples/generate "Explain goroutines in one sentence"
 ```
 
 `-model` and `-timeout` flags are available; token usage is printed on stderr.

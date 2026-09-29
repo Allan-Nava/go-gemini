@@ -441,12 +441,14 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
           <tbody>
             <tr><td class="m">New(opts...)</td><td><span class="cmd">func</span></td><td class="d">Builds a client. Returns <code>ErrMissingAPIKey</code> when neither <code>WithAPIKey</code> nor <code>GEMINI_API_KEY</code> gives a key.</td></tr>
             <tr><td class="m">WithAPIKey · WithModel</td><td><span class="cmd">option</span></td><td class="d">Key and model. The default model is <code>gemini-3.8-flash</code>; a <code>models/</code> prefix is accepted.</td></tr>
-            <tr><td class="m">WithHTTPClient · WithTimeout</td><td><span class="cmd">option</span></td><td class="d">Bring your own <code>*http.Client</code>, or change the 60 s timeout of the default one.</td></tr>
-            <tr><td class="m">WithBaseURL</td><td><span class="cmd">option</span></td><td class="d">Another host: a proxy, or an <code>httptest</code> server in your tests.</td></tr>
+            <tr><td class="m">WithHTTPClient · WithTimeout</td><td><span class="cmd">option</span></td><td class="d">Bring your own <code>*http.Client</code>, or change the 60 s timeout of the default one (must be positive).</td></tr>
+            <tr><td class="m">WithBaseURL</td><td><span class="cmd">option</span></td><td class="d">Another host: a proxy, or an <code>httptest</code> server in your tests. HTTPS only; plain HTTP for loopback.</td></tr>
             <tr><td class="m">GenerateContent(ctx, prompt)</td><td><span class="cmd">method</span></td><td class="d">Sends one user prompt to <code>:generateContent</code> and returns the <code>*Response</code>.</td></tr>
             <tr><td class="m">Generate(ctx, req)</td><td><span class="cmd">method</span></td><td class="d">Same call with a full <code>GenerateContentRequest</code>, for callers that build the contents themselves.</td></tr>
             <tr><td class="m">Response.Text()</td><td><span class="cmd">method</span></td><td class="d">Text of the first candidate; empty when the prompt was blocked (see <code>PromptFeedback</code>).</td></tr>
             <tr><td class="m">*APIError</td><td><span class="cmd">error</span></td><td class="d">Non-2xx reply: HTTP code, Google status such as <code>RESOURCE_EXHAUSTED</code>, and the message. Match it with <code>errors.As</code>.</td></tr>
+            <tr><td class="m">ErrMissingAPIKey · ErrInvalidBaseURL · ErrInvalidTimeout · ErrEmptyModel</td><td><span class="cmd">error</span></td><td class="d">Returned by <code>New</code> for a missing key or an invalid option.</td></tr>
+            <tr><td class="m">ErrEmptyRequest · ErrRedirectOtherHost</td><td><span class="cmd">error</span></td><td class="d">An empty prompt is rejected before sending; a redirect to another host is refused, so the key stays put.</td></tr>
           </tbody>
         </table>
       </div>
@@ -459,6 +461,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
         <p class="kicker">Auth</p>
         <h2>One key, in a header</h2>
         <p class="section-lede" style="margin-bottom:0">The client sends your key in the <code>x-goog-api-key</code> header, never in the URL, so it stays out of access logs and error messages. <code>WithAPIKey</code> wins over <code>GEMINI_API_KEY</code>.</p>
+        <p class="section-lede" style="margin:16px 0 0">The key only travels over HTTPS and only to the base URL's host: <code>net/http</code> would copy it to any redirect target, so redirects to another host are refused with <code>ErrRedirectOtherHost</code>.</p>
         <p class="section-lede" style="margin:16px 0 0">The Bard-era design copied the <code>__Secure-1PSID</code> session cookie out of the browser. That cookie opens the whole Google account and the web endpoint was never meant for automated use, so it is not supported.</p>
         <p class="note">Never commit a key. Keep it in the environment or a secret manager, and restrict it in Google AI Studio.</p>
       </div>
@@ -486,7 +489,8 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
           <path class="arrow back" d="M368 226H94" marker-end="url(#ahb)"/>
           <text class="msg" x="230" y="218" text-anchor="middle">candidates[].content</text>
 
-          <text class="msg" x="230" y="276" text-anchor="middle">non-2xx &rarr; *APIError</text>
+          <text class="msg" x="230" y="262" text-anchor="middle">non-2xx &rarr; *APIError</text>
+          <text class="msg" x="230" y="282" text-anchor="middle">3xx to another host &rarr; refused</text>
         </svg>
       </div>
     </div>
@@ -500,6 +504,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
       <div class="steps">
         <ol class="step-list">
           <li><b>v0.2.0 &middot; first working client</b><span>Released 2026-09-29.</span></li>
+          <li><b>v0.2.1 &middot; hardening</b><span>The key never leaves the API host; invalid options fail early.</span></li>
           <li><b>v0.3.0 &middot; SDK experience</b><span>Streaming, chat, generation parameters, retries, lint.</span></li>
           <li><b>v1.0.0 &middot; stable API</b><span>Frozen surface, contributing guide, automated releases.</span></li>
         </ol>

@@ -1,3 +1,6 @@
+> **Archiviato il 2026-09-29** (milestone v0.2.1): backlog dell'epoca del client Bard, superato.
+> Il lavoro pianificato è in [`../milestone.md`](../milestone.md).
+
 ---
 layout: default
 title: Backlog
