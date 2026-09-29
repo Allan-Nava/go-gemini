@@ -10,12 +10,14 @@ last_modified_date: 2026-07-23T12:00:00+0000
 
 Elenco delle attività proposte per migliorare `go-gemini`.
 
+> Priorità e contesto aggiornati: [`audit-2026-09-29.md`](audit-2026-09-29.md). Prima di tutto va presa la decisione sull'API target (audit §1): gli item su Bard/`SNlM0e` qui sotto dipendono da quella.
+
 ## 1. Stabilità del client Bard
 
 - [ ] Implementare `GetAnswer()` in `gogemini/gemini.go`.
 - [ ] Estrarre `SNlM0e` dalla pagina di Bard o da risposta API in modo robusto.
 - [ ] Gestire gli header di sessione e cookie in modo configurabile, evitando hardcode non necessari.
-- [ ] Documentare il flusso di autenticazione in `README.md` e `docs/index.md`.
+- [ ] Documentare il flusso di autenticazione in `README.md` e `docs/index.html`.
 
 ## 2. Test e copertura
 
@@ -29,7 +31,7 @@ Elenco delle attività proposte per migliorare `go-gemini`.
 - [ ] Creare `CONTRIBUTING.md` con linee guida per i contributi.
 - [ ] Aggiungere esempi di utilizzo nel `README.md`.
 - [ ] Documentare le variabili di ambiente supportate e le modalità di esecuzione dei test.
-- [ ] Aggiungere una sezione `Docs` nel sito Jekyll con la roadmap e il backlog.
+- [x] Sito GitHub Pages statico (`docs/index.html`) con stato, API attuale e roadmap.
 
 ## 4. Qualità del codice
 

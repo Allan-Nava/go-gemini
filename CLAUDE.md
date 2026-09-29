@@ -1,38 +1,36 @@
 # CLAUDE.md — go-gemini
 
-Repo Go per l'interfaccia Google Bard; questo documento definisce le linee guida operative per lavorare con questo progetto.
+SDK Go (`github.com/Allan-Nava/go-gemini`, package `gogemini`) nato come client non ufficiale di Google Bard (cookie `__Secure-1PSID` + token `SNlM0e`). **Stato: scheletro, non funzionante** — `GetAnswer()` ritorna `nil`, nessun test, Bard non esiste più (rinominato Gemini, 02/2024). Sito: GitHub Pages `https://allan-nava.github.io/go-gemini/` (HTML statico in `docs/`, deploy via `.github/workflows/jekyll-gh-pages.yml`). Stato dettagliato: `docs/audit-2026-09-29.md`.
 
 ## Regole di lavoro (SEMPRE)
 
-- **MAI `git push` automatico**: il push lo esegue sempre l'utente. L'agente può suggerire i comandi ma non deve mai eseguirli.
-- **MAI `Co-Authored-By` nei commit**: l'assistente mantiene le modifiche come suggerimenti, non come coautore.
-- **Test e formattazione**: ogni modifica al codice deve considerare `gofmt ./...`, `go test ./...` e `go mod tidy` se si cambia `go.mod`/`go.sum`.
-- **Documentare sempre**: se aggiungi o modifichi una funzionalità, aggiorna il `README.md` o aggiungi un documento in `docs/` se esiste. La documentazione deve descrivere l'uso, l'autenticazione e le eventuali variabili d'ambiente.
-- **Niente segreti nel repository**: non inserire mai cookie, token o credenziali (`__Secure-1PSID`, chiavi API, ecc.) nei file, nei commenti o negli esempi.
-- **Cambiamenti chiari**: ogni suggerimento deve includere quali file modificare, come verificare il risultato e quale problema risolve.
+- **MAI `git push`** — lo fa sempre l'utente. MAI `Co-Authored-By` né footer di attribuzione in commit/PR. Commit solo se richiesto.
+- **Repo PUBBLICO**: prima di ogni commit `git grep` + `git log -p` per segreti e nomi interni. ⛔ Mai cookie/token Google (`__Secure-1PSID`, `SNlM0e`, API key) in codice, test, esempi, `env/.env.*`, log di debug (`IS_DEBUG=true` fa loggare a resty **gli header**, cookie inclusi → mai incollare quell'output). Esempi solo con placeholder (`YOUR_API_KEY`).
+- **Verifica prima di dire "fatto"**: `gofmt -l .` (vuoto), `go vet ./...`, `go test ./...` **senza `APP_ENV`** (oggi fallisce: vedi trappole), `go mod tidy -diff` se tocchi le dipendenze, `go run golang.org/x/vuln/cmd/govulncheck@latest ./...` se aggiorni moduli.
+- **Documentare SEMPRE**: modifica all'API pubblica o all'autenticazione → `README.md` + `docs/index.html` (quickstart e tabella API) nello stesso commit. Todo → `docs/backlog.md` (non TODO sparsi nel codice). Audit/analisi → `docs/<tema>-<YYYY-MM-DD>.md` con schema ASCII.
+- **Allineare tutto**: nome del progetto (go-gemini, non go-bard), variabili d'ambiente, versione Go minima: `go.mod`, matrice CI, README, sito e CLAUDE.md devono dire la stessa cosa.
+- **Decisione aperta, non anticiparla**: la direzione (API ufficiale Gemini con API key vs scraping del web client) è dell'utente — vedi audit §1. Non implementare lo scraping del cookie senza conferma esplicita.
 
-## Pattern di sviluppo
+## Pattern per modifiche all'SDK
 
-1. **Verifica locale**: prima di proporre una modifica, eseguire i comandi locali:
-   - `gofmt -w .`
-   - `go test ./...`
-   - `go vet ./...`
-2. **Aggiornare la documentazione**:
-   - se si modifica l'interfaccia pubblica o l'autenticazione, aggiornare `README.md` sotto la sezione `Authentication` o creare una nuova sezione di esempi.
-   - se si aggiunge una nuova funzione pubblica, documentarne l'utilizzo con un esempio concreto.
-3. **Evitare rumore**:
-   - non proporre modifiche non necessarie a file non correlati.
-   - non aggiungere strumenti o dipendenze senza motivo valido.
+1. **Baseline**: build/vet/test prima di toccare nulla, per distinguere i fallimenti nuovi da quelli esistenti.
+2. **Errori, non panic**: il codice di libreria ritorna `error` (sentinel esportati, `errors.Is`); niente `panic`, `log.Fatal`, `log.Println` nei package importabili.
+3. **Test senza rete**: `httptest.Server` + `WithBaseURL`; nessun test deve chiamare Google. `Example…` in `_test.go` per ogni metodo pubblico (finisce su pkg.go.dev).
+4. **Chiusura**: README + sito + backlog aggiornati, `gofmt`/`vet`/`test` verdi, comandi di verifica nel messaggio all'utente.
 
 ## Trappole note / regole tecniche
 
-- Il repository è un SDK Go: non usare file di configurazione esterni o tecnologie non richieste dal progetto.
-- Non includere esempi di cookie o sessioni reali; scrivi esempi generici e sicuri.
-- Non modificare la struttura principale del repository (`go.mod`, `go.sum`, `README.md`) senza esplicitare il motivo e l'impatto.
-- Se si propone una modifica alla configurazione di autenticazione, spiegare chiaramente il flusso e le eventuali implicazioni di sicurezza.
+- **`go test ./...` in locale muore** con `Error loading .env file`: `test/a_main_test.go` imposta `APP_ENV=test` e `env.Load()` cerca `../env/.env.test`, che non esiste. In CI passa solo perché il workflow setta `APP_ENV=runner`. Non "risolvere" creando `.env.test` con valori veri.
+- `configuration.GetConfiguration()` fa **`panic`** se `env.Parse` fallisce; la variabile è `_BARD_API_KEY` (underscore iniziale) ma il campo contiene un cookie, non una API key.
+- Il client resty imposta a mano l'header `Host` e un `Content-Type` form-urlencoded **globale**, mentre `restyPost` manda un body JSON: incoerente con l'endpoint `StreamGenerate` (form `f.req`/`at`). Nessun timeout configurato → una richiesta può restare appesa.
+- `golang.org/x/net` è del 2021 (indiretta via resty v2.7.0): govulncheck = 0 vulnerabilità **raggiungibili**, 20 nei moduli richiesti. Aggiornare resty prima di aggiungere codice di rete.
+- **GitHub Pages**: build type *workflow*, pubblica `./docs` così com'è (`.nojekyll`, nessun Jekyll). I `.md` in `docs/` si leggono su GitHub, non come pagine del sito: linkarli con URL `github.com/.../blob/main/docs/...`.
+- `Dockerfile` copia `/app/main` ma il repo è una libreria senza `main` → la build Docker fallisce. Non usarlo come riferimento.
+- Aggiornamenti dipendenze: attivi **sia** Dependabot **sia** Renovate (doppie PR); Dependabot punta anche a `/tests`, che non esiste.
 
 ## Puntatori
 
-- `README.md` è il riferimento principale per l'uso e l'autenticazione.
-- Se serve una guida più estesa su contributi e PR, suggerire la creazione di un `CONTRIBUTING.md`.
-- Per modifiche feature/bugfix, indicare sempre i comandi di verifica e i file interessati.
+- Audit e priorità: `docs/audit-2026-09-29.md` · Backlog: `docs/backlog.md` · Milestone: `docs/milestone.md`
+- Sito: `docs/index.html` (+ `docs/404.html`), stesso stile di `Allan-Nava/MistServer-go-sdk` (token colore su `:root`, dark/light, niente dipendenze JS).
+- Regole per altri agenti: `AGENTS.md` (tenerlo coerente con questo file).
+- API ufficiale Gemini: https://ai.google.dev/api — SDK Go ufficiale `google.golang.org/genai`.
