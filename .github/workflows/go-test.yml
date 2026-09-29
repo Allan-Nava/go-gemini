@@ -8,9 +8,6 @@ on:
 permissions:
   contents: read
 #
-env:
-  APP_ENV: runner
-#
 jobs:
   build:
     runs-on: ubuntu-latest

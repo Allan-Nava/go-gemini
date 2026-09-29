@@ -10,7 +10,7 @@ last_modified_date: 2026-07-23T12:00:00+0000
 
 Elenco delle attività proposte per migliorare `go-gemini`.
 
-> Priorità e contesto aggiornati: [`audit-2026-09-29.md`](audit-2026-09-29.md). **Direzione decisa**: API ufficiale Gemini — il lavoro pianificato è in [`milestone.md`](milestone.md) (sincronizzato con le milestone GitHub). Gli item su Bard/`SNlM0e` qui sotto sono **superati** e restano solo come storico.
+> Priorità e contesto aggiornati: [`audit-2026-09-29.md`](audit-2026-09-29.md). **Direzione decisa**: API ufficiale Gemini — il lavoro pianificato è in [`milestone.md`](milestone.md) (sincronizzato con le milestone GitHub). Gli item su Bard/`SNlM0e` qui sotto sono **superati** e restano solo come storico; il codice Bard è stato rimosso in v0.2.0.
 
 ## 1. Stabilità del client Bard
 

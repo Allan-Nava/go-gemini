@@ -26,7 +26,7 @@ Questo file definisce le regole operative per gli agenti AI (Copilot, Claude, al
 ## Cosa evitare
 
 - Non proporre `git push` o qualsiasi azione che alteri il repo remoto.
-- Non generare file con dati sensibili o esempi reali di sessione Google Bard.
+- Non generare file con dati sensibili o esempi reali di chiavi API o sessioni Google.
 - Non cambiare le dipendenze in `go.mod` senza una valida ragione e relativa documentazione.
 - Non suggerire l'aggiunta di librerie pesanti se il problema può essere risolto con il codice esistente.
 

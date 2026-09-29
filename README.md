@@ -3,8 +3,9 @@
 [![Go test workflow](https://github.com/Allan-Nava/go-gemini/actions/workflows/go-test.yml/badge.svg)](https://github.com/Allan-Nava/go-gemini/actions/workflows/go-test.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/Allan-Nava/go-gemini/gogemini.svg)](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini)
 
-A small Go client for the [official Gemini API](https://ai.google.dev/api), built on `net/http`.
-**Pre-release**: milestone [v0.2.0](docs/milestone.md) is in progress and not tagged yet.
+A small Go client for the [official Gemini API](https://ai.google.dev/api). Standard library only:
+the module has no dependencies. **Pre-release**: milestone [v0.2.0](docs/milestone.md) is
+complete in code and waiting for its release tag.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
 [docs/audit-2026-09-29.md](docs/audit-2026-09-29.md) · [Backlog](docs/backlog.md) ·
@@ -81,22 +82,32 @@ Never commit a key: `.env*` files are git-ignored. The Bard-era approach (copyin
 `__Secure-1PSID` browser cookie) is not supported: a session cookie grants access to the whole
 Google account, and the web endpoint is undocumented and not meant for automated use.
 
-## Deprecated packages
+## Try it
 
-`gogemini.NewGoGemini`, `IGoGemini.GetAnswer` (a stub that never sent a request) and the
-`configuration`, `constants` and `env` packages are left over from the Bard client. They are marked
-`Deprecated` and will be removed before v0.2.0 is tagged; that removal is a breaking change.
+```bash
+export GEMINI_API_KEY=...   # from Google AI Studio
+go run ./examples/generate "Explain goroutines in one sentence"
+```
+
+`-model` and `-timeout` flags are available; token usage is printed on stderr.
+
+## Upgrading from v0.1.0
+
+v0.2.0 is a breaking change. The Bard-era API is gone: `gogemini.NewGoGemini`, `IGoGemini`,
+`GetAnswer` (a stub that never sent a request), and the `configuration`, `constants` and `env`
+packages. `IS_DEBUG`, `_BARD_API_KEY` and `APP_ENV` are no longer read. Replace them with
+`gogemini.New(...)` and `Client.GenerateContent`, and set `GEMINI_API_KEY`. See
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Development
 
 ```bash
 gofmt -l .
 go vet ./...
-go test -race ./gogemini/
+go test -race ./...
 ```
 
-The tests use `httptest` and never call Google. `go test ./...` on the whole module still needs
-`APP_ENV=runner` because of the legacy `test/` package, until it is removed.
+The tests use `httptest` and never call Google; no environment variables are needed.
 
 Milestones and their issues on GitHub are generated from [docs/milestone.md](docs/milestone.md) by the
 *Milestone sync* workflow: edit the file, not the issues. Preview locally with

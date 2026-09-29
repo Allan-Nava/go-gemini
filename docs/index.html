@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>go-gemini</title>
-<meta name="description" content="A small Go client for the official Gemini API: one API key, one call, typed errors, built on net/http.">
+<meta name="description" content="A small Go client for the official Gemini API: one API key, one call, typed errors, standard library only.">
 <meta property="og:title" content="go-gemini">
 <meta property="og:description" content="A small Go client for the official Gemini API.">
 <meta property="og:type" content="website">
@@ -321,7 +321,7 @@ td .cmd.stub { color: var(--warn); background: color-mix(in srgb, var(--warn) 13
       <div>
         <span class="eyebrow"><span class="dot"></span>Pre-release &middot; MIT</span>
         <h1>Talk to <span class="grad">Gemini</span><br>from Go.</h1>
-        <p class="lede">A small client for the official Gemini API. One API key, one call, typed errors, built on net/http.</p>
+        <p class="lede">A small client for the official Gemini API. One API key, one call, typed errors, and nothing outside the standard library.</p>
         <div class="cta">
           <a class="btn primary" href="#quickstart">Get started
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -357,7 +357,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
     <div class="wrap">
       <p class="kicker">Status</p>
       <h2>Where the SDK stands</h2>
-      <p class="section-lede">Milestone <a href="https://github.com/Allan-Nava/go-gemini/milestones">v0.2.0</a> is in progress: the client works, and the Bard-era packages are on their way out. Not tagged yet.</p>
+      <p class="section-lede">Milestone <a href="https://github.com/Allan-Nava/go-gemini/milestones">v0.2.0</a> is complete in code and waiting for its release tag.</p>
       <div class="features">
         <div class="card reveal">
           <span class="pill ok">Works</span>
@@ -369,12 +369,12 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
           </ul>
         </div>
         <div class="card reveal">
-          <span class="pill no">Deprecated</span>
+          <span class="pill no">Removed</span>
           <h3>The Bard client</h3>
           <ul>
             <li><code>NewGoGemini</code> and <code>GetAnswer</code> (a stub)</li>
             <li>The <code>configuration</code>, <code>constants</code> and <code>env</code> packages</li>
-            <li>They go away before v0.2.0 is tagged</li>
+            <li>Breaking change: see the <a href="https://github.com/Allan-Nava/go-gemini/blob/main/CHANGELOG.md">changelog</a></li>
           </ul>
         </div>
         <div class="card reveal">
@@ -499,7 +499,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
       <p class="section-lede">Tracked as <a href="https://github.com/Allan-Nava/go-gemini/milestones">GitHub milestones</a>, generated from <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/milestone.md">docs/milestone.md</a>.</p>
       <div class="steps">
         <ol class="step-list">
-          <li><b>v0.2.0 &middot; first working client</b><span>Remove the Bard packages, then tag with a breaking-change note.</span></li>
+          <li><b>v0.2.0 &middot; first working client</b><span>Done in code: one live check, then the release tag.</span></li>
           <li><b>v0.3.0 &middot; SDK experience</b><span>Streaming, chat, generation parameters, retries, lint.</span></li>
           <li><b>v1.0.0 &middot; stable API</b><span>Frozen surface, contributing guide, automated releases.</span></li>
         </ol>
