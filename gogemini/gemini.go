@@ -8,6 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+// Deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 type IGoGemini interface {
 	// api
 	GetAnswer() error
@@ -20,6 +21,7 @@ type gemini struct {
 	sNlM0e        string
 }
 
+// Deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 func NewGoGemini(configuration *configuration.Configuration) IGoGemini {
 	g := &gemini{
 		configuration: configuration,

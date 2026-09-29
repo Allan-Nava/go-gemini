@@ -1,3 +1,4 @@
+// Package env is deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 package env
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 func Load() {
 	env := os.Getenv("APP_ENV")
 	if env == "local" {

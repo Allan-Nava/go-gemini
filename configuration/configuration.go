@@ -1,3 +1,4 @@
+// Package configuration is deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 package configuration
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+// Deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 type Configuration struct {
 	IsDebug    bool `env:"IS_DEBUG"`
 	BaseUrl    string
@@ -12,6 +14,7 @@ type Configuration struct {
 	//RestClient *resty.Client
 }
 
+// Deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 func GetConfiguration() *Configuration {
 	configuration := Configuration{}
 	err := env.Parse(&configuration)

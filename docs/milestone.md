@@ -14,7 +14,7 @@ attività di dettaglio: [`backlog.md`](backlog.md).
                       Go 1.26, 0 vuln             API ufficiale + test          streaming, chat
 ```
 
-## v0.2.0 — Primo client funzionante (nuova, 2026-09-29)
+## v0.2.0 — Primo client funzionante (in corso, dal 2026-09-29)
 
 **Obiettivo:** `go get` + una API key → una risposta di Gemini in cinque righe di codice, con test che
 non toccano la rete.
@@ -25,19 +25,24 @@ milestone: non è documentato e non è pensato per uso automatizzato.
 
 ### Scope
 
-- [ ] <!-- id:v020-options --> **Configurazione a opzioni funzionali**: `gogemini.New(opts...) (*Client, error)` con `WithAPIKey`,
+- [x] <!-- id:v020-options --> **Configurazione a opzioni funzionali**: `gogemini.New(opts...) (*Client, error)` con `WithAPIKey`,
       `WithModel`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`; default di timeout sensato.
 - [ ] <!-- id:v020-no-panic --> **Niente panic nella libreria**: via `panic` da `configuration`, `log.Fatal` da `env`, `log.Println` da
       `gogemini`; errori esportati (`ErrMissingAPIKey`, `*APIError` con status e messaggio di Google).
-- [ ] <!-- id:v020-generate-content --> **`GenerateContent(ctx, prompt string) (*Response, error)`** su `POST /v1beta/models/{model}:generateContent`,
+- [x] <!-- id:v020-generate-content --> **`GenerateContent(ctx, prompt string) (*Response, error)`** su `POST /v1beta/models/{model}:generateContent`,
       con tipi di request/response minimi (`contents`, `candidates[].content.parts[].text`) e helper `Response.Text()`.
 - [ ] <!-- id:v020-api-key-env --> **Chiave da ambiente**: `GEMINI_API_KEY` letta solo se il chiamante non passa `WithAPIKey`; `_BARD_API_KEY` rimossa.
 - [ ] <!-- id:v020-offline-tests --> **Test senza rete**: `httptest.Server` per successo, 400/403/429, body malformato, context cancellato;
       `Example` per `New` e `GenerateContent`. `go test ./...` verde **senza** `APP_ENV`.
 - [ ] <!-- id:v020-legacy-cleanup --> **Pulizia legacy**: rimuovere `getSnim0e`, `RequestGetAnswer`, costanti `bard.google.com`, header
       browser (`Host`, `Origin`, UA Chrome 91), package `env` e file `env/.env.*`; `.gitignore` con `.env*`.
-- [ ] <!-- id:v020-docs --> **Docs allineate**: README (uso, auth, variabili), `docs/index.html` (hero, Quickstart, tabella API,
+- [x] <!-- id:v020-docs --> **Docs allineate**: README (uso, auth, variabili), `docs/index.html` (hero, Quickstart, tabella API,
       diagramma auth senza "planned"), CLAUDE.md, backlog.
+
+> **Avanzamento 2026-09-29**: client nuovo in `gogemini/client.go` + `generate.go` (solo `net/http`), test
+> `httptest` in `client_test.go` + `example_test.go`, README/sito/CLAUDE.md allineati. Da fare: rimozione dei
+> package legacy (`git rm`, a cura dell'utente) → chiude `v020-no-panic`, `v020-api-key-env`,
+> `v020-offline-tests`, `v020-legacy-cleanup`.
 
 ### Fuori scope
 

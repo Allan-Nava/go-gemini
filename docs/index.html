@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>go-gemini</title>
-<meta name="description" content="A small Go client for Google Gemini. Experimental: the package builds, the request path is being rebuilt on the official Gemini API.">
+<meta name="description" content="A small Go client for the official Gemini API: one API key, one call, typed errors, built on net/http.">
 <meta property="og:title" content="go-gemini">
-<meta property="og:description" content="A small Go client for Google Gemini. Experimental.">
+<meta property="og:description" content="A small Go client for the official Gemini API.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://allan-nava.github.io/go-gemini/">
 <meta name="theme-color" content="#0b1117">
@@ -319,11 +319,11 @@ td .cmd.stub { color: var(--warn); background: color-mix(in srgb, var(--warn) 13
   <div class="hero">
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow"><span class="dot"></span>Experimental &middot; MIT</span>
+        <span class="eyebrow"><span class="dot"></span>Pre-release &middot; MIT</span>
         <h1>Talk to <span class="grad">Gemini</span><br>from Go.</h1>
-        <p class="lede">A small Go client for Google Gemini. It started as a Bard client; the request path is being rebuilt on the official Gemini API. The package builds today, but it does not send prompts yet.</p>
+        <p class="lede">A small client for the official Gemini API. One API key, one call, typed errors, built on net/http.</p>
         <div class="cta">
-          <a class="btn primary" href="#status">See what works
+          <a class="btn primary" href="#quickstart">Get started
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
           <a class="btn" href="https://github.com/Allan-Nava/go-gemini">View on GitHub</a>
@@ -337,15 +337,18 @@ td .cmd.stub { color: var(--warn); background: color-mix(in srgb, var(--warn) 13
 
       <div class="window" aria-label="Example code">
         <div class="window-bar"><i></i><i></i><i></i><span>main.go</span></div>
-<pre><code><span class="c">// What the package exposes today</span>
-cfg := configuration.<span class="f">GetConfiguration</span>()
-client := gogemini.<span class="f">NewGoGemini</span>(cfg)
-
-<span class="k">if</span> err := client.<span class="f">GetAnswer</span>(); err != <span class="k">nil</span> {
-    log.<span class="f">Fatal</span>(err)
+<pre><code><span class="c">// Reads GEMINI_API_KEY from the environment</span>
+client, err := gogemini.<span class="f">New</span>()
+<span class="k">if</span> err != <span class="k">nil</span> {
+    <span class="k">return</span> err
 }
-<span class="c">// GetAnswer is a stub: it returns nil</span>
-<span class="c">// and sends no request yet.</span></code></pre>
+
+resp, err := client.<span class="f">GenerateContent</span>(ctx,
+    <span class="s">"Explain goroutines in one sentence"</span>)
+<span class="k">if</span> err != <span class="k">nil</span> {
+    <span class="k">return</span> err
+}
+fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></pre>
       </div>
     </div>
   </div>
@@ -354,33 +357,33 @@ client := gogemini.<span class="f">NewGoGemini</span>(cfg)
     <div class="wrap">
       <p class="kicker">Status</p>
       <h2>Where the SDK stands</h2>
-      <p class="section-lede">From the <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/audit-2026-09-29.md">September 2026 audit</a>. Nothing here should be used in production yet.</p>
+      <p class="section-lede">Milestone <a href="https://github.com/Allan-Nava/go-gemini/milestones">v0.2.0</a> is in progress: the client works, and the Bard-era packages are on their way out. Not tagged yet.</p>
       <div class="features">
         <div class="card reveal">
           <span class="pill ok">Works</span>
-          <h3>Builds and vets clean</h3>
+          <h3>A real call</h3>
           <ul>
-            <li><code>go build</code>, <code>go vet</code> and <code>gofmt</code> pass</li>
-            <li>A configured <code>resty</code> client with optional debug logging</li>
-            <li>No secrets anywhere in the git history</li>
+            <li><code>GenerateContent</code> against the official API</li>
+            <li>Typed errors: <code>*APIError</code>, <code>ErrMissingAPIKey</code></li>
+            <li>Offline tests with <code>httptest</code>, race-clean</li>
           </ul>
         </div>
         <div class="card reveal">
-          <span class="pill no">Missing</span>
-          <h3>No working call</h3>
+          <span class="pill no">Deprecated</span>
+          <h3>The Bard client</h3>
           <ul>
-            <li><code>GetAnswer()</code> takes no prompt and returns nothing</li>
-            <li>No tests; <code>go test</code> fails locally without <code>APP_ENV=runner</code></li>
-            <li>Config errors <code>panic</code> instead of returning an error</li>
+            <li><code>NewGoGemini</code> and <code>GetAnswer</code> (a stub)</li>
+            <li>The <code>configuration</code>, <code>constants</code> and <code>env</code> packages</li>
+            <li>They go away before v0.2.0 is tagged</li>
           </ul>
         </div>
         <div class="card reveal">
           <span class="pill next">Next</span>
-          <h3>Move to the official API</h3>
+          <h3>v0.3.0</h3>
           <ul>
-            <li>API key instead of a copied browser cookie</li>
-            <li>Functional options, <code>context.Context</code>, typed errors</li>
-            <li>Tests against <code>httptest</code>, no network</li>
+            <li>Streaming and multi-turn chat</li>
+            <li>Generation parameters</li>
+            <li>Retry with backoff on 429 and 5xx</li>
           </ul>
         </div>
       </div>
@@ -390,23 +393,38 @@ client := gogemini.<span class="f">NewGoGemini</span>(cfg)
   <section id="quickstart">
     <div class="wrap">
       <p class="kicker">Quickstart</p>
-      <h2>Try the current build</h2>
-      <p class="section-lede">Enough to compile against the package and follow along. It will not reach Google until the rewrite lands.</p>
+      <h2>From zero to an answer</h2>
+      <p class="section-lede">Get a key from <a href="https://aistudio.google.com/apikey">Google AI Studio</a> and keep it in the environment, not in your code.</p>
       <div class="steps">
         <ol class="step-list">
           <li><b>Install</b><span><code>go get</code> the module. Go 1.26 or newer.</span></li>
-          <li><b>Configure</b><span><code>GetConfiguration()</code> reads <code>IS_DEBUG</code> from the environment.</span></li>
-          <li><b>Build the client</b><span><code>NewGoGemini(cfg)</code> returns an <code>IGoGemini</code>.</span></li>
-          <li><b>Run the checks</b><span>The same commands CI runs.</span></li>
+          <li><b>Set the key</b><span><code>export GEMINI_API_KEY=…</code>, or pass <code>WithAPIKey</code>.</span></li>
+          <li><b>Create the client</b><span><code>gogemini.New(opts...)</code> checks the key and applies a 60 s timeout.</span></li>
+          <li><b>Call</b><span><code>GenerateContent(ctx, prompt)</code>, then <code>resp.Text()</code>.</span></li>
         </ol>
         <div class="window reveal">
-          <div class="window-bar"><i></i><i></i><i></i><span>terminal</span><button class="copy" type="button" data-copy="#qs-code">Copy</button></div>
-<pre><code id="qs-code">git clone https://github.com/Allan-Nava/go-gemini
-<span class="k">cd</span> go-gemini
+          <div class="window-bar"><i></i><i></i><i></i><span>main.go</span><button class="copy" type="button" data-copy="#qs-code">Copy</button></div>
+<pre><code id="qs-code"><span class="k">package</span> main
 
-go build ./...
-go vet ./...
-APP_ENV=runner go test ./...   <span class="c"># loads env/.env.runner</span></code></pre>
+<span class="k">import</span> (
+    <span class="s">"context"</span>
+    <span class="s">"fmt"</span>
+    <span class="s">"log"</span>
+
+    <span class="s">"github.com/Allan-Nava/go-gemini/gogemini"</span>
+)
+
+<span class="k">func</span> <span class="f">main</span>() {
+    client, err := gogemini.<span class="f">New</span>(gogemini.<span class="f">WithModel</span>(<span class="s">"gemini-3.8-flash"</span>))
+    <span class="k">if</span> err != <span class="k">nil</span> {
+        log.<span class="f">Fatal</span>(err)
+    }
+    resp, err := client.<span class="f">GenerateContent</span>(context.<span class="f">Background</span>(), <span class="s">"Say hello"</span>)
+    <span class="k">if</span> err != <span class="k">nil</span> {
+        log.<span class="f">Fatal</span>(err)
+    }
+    fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())
+}</code></pre>
         </div>
       </div>
     </div>
@@ -415,17 +433,20 @@ APP_ENV=runner go test ./...   <span class="c"># loads env/.env.runner</span></c
   <section id="api">
     <div class="wrap">
       <p class="kicker">API</p>
-      <h2>The current surface</h2>
-      <p class="section-lede">Everything exported today. Names will change with the rewrite; the module path will not. Package docs are on <a href="https://pkg.go.dev/github.com/Allan-Nava/go-gemini">pkg.go.dev</a>.</p>
+      <h2>Package gogemini</h2>
+      <p class="section-lede">Everything you need for a single-turn call. Runnable examples are on <a href="https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini">pkg.go.dev</a>; request semantics are in the <a href="https://ai.google.dev/api/generate-content">Gemini API reference</a>.</p>
       <div class="table-wrap reveal">
         <table>
-          <thead><tr><th>Symbol</th><th>Package</th><th>What it does</th></tr></thead>
+          <thead><tr><th>Symbol</th><th>Kind</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td class="m">NewGoGemini(cfg)</td><td><span class="cmd">gogemini</span></td><td class="d">Builds the HTTP client with the base URL and default headers; turns on resty debug output when <code>IsDebug</code> is set.</td></tr>
-            <tr><td class="m">IGoGemini.GetAnswer()</td><td><span class="cmd stub">stub</span></td><td class="d">Placeholder for the generate call. Returns <code>nil</code> without sending a request.</td></tr>
-            <tr><td class="m">GetConfiguration()</td><td><span class="cmd">configuration</span></td><td class="d">Reads <code>IS_DEBUG</code> and <code>_BARD_API_KEY</code> from the environment. Panics if parsing fails.</td></tr>
-            <tr><td class="m">Configuration</td><td><span class="cmd">configuration</span></td><td class="d"><code>IsDebug</code>, <code>BaseUrl</code>, <code>BardApiKey</code>.</td></tr>
-            <tr><td class="m">env.Load()</td><td><span class="cmd">env</span></td><td class="d">Loads <code>env/.env.&lt;APP_ENV&gt;</code> for <code>local</code>, <code>runner</code> or <code>test</code>. Exits the process if the file is missing.</td></tr>
+            <tr><td class="m">New(opts...)</td><td><span class="cmd">func</span></td><td class="d">Builds a client. Returns <code>ErrMissingAPIKey</code> when neither <code>WithAPIKey</code> nor <code>GEMINI_API_KEY</code> gives a key.</td></tr>
+            <tr><td class="m">WithAPIKey · WithModel</td><td><span class="cmd">option</span></td><td class="d">Key and model. The default model is <code>gemini-3.8-flash</code>; a <code>models/</code> prefix is accepted.</td></tr>
+            <tr><td class="m">WithHTTPClient · WithTimeout</td><td><span class="cmd">option</span></td><td class="d">Bring your own <code>*http.Client</code>, or change the 60 s timeout of the default one.</td></tr>
+            <tr><td class="m">WithBaseURL</td><td><span class="cmd">option</span></td><td class="d">Another host: a proxy, or an <code>httptest</code> server in your tests.</td></tr>
+            <tr><td class="m">GenerateContent(ctx, prompt)</td><td><span class="cmd">method</span></td><td class="d">Sends one user prompt to <code>:generateContent</code> and returns the <code>*Response</code>.</td></tr>
+            <tr><td class="m">Generate(ctx, req)</td><td><span class="cmd">method</span></td><td class="d">Same call with a full <code>GenerateContentRequest</code>, for callers that build the contents themselves.</td></tr>
+            <tr><td class="m">Response.Text()</td><td><span class="cmd">method</span></td><td class="d">Text of the first candidate; empty when the prompt was blocked (see <code>PromptFeedback</code>).</td></tr>
+            <tr><td class="m">*APIError</td><td><span class="cmd">error</span></td><td class="d">Non-2xx reply: HTTP code, Google status such as <code>RESOURCE_EXHAUSTED</code>, and the message. Match it with <code>errors.As</code>.</td></tr>
           </tbody>
         </table>
       </div>
@@ -436,16 +457,16 @@ APP_ENV=runner go test ./...   <span class="c"># loads env/.env.runner</span></c
     <div class="wrap auth">
       <div>
         <p class="kicker">Auth</p>
-        <h2>From a browser cookie to an API key</h2>
-        <p class="section-lede" style="margin-bottom:0">The original design copied the <code>__Secure-1PSID</code> session cookie out of the browser and scraped a page token before each call. That cookie opens the whole Google account, and the endpoint, which still answers, was never documented or meant for automated use.</p>
-        <p class="section-lede" style="margin:16px 0 0">The plan is to send an API key from <a href="https://aistudio.google.com/apikey">Google AI Studio</a> in the <code>x-goog-api-key</code> header to the versioned <code>generateContent</code> endpoint. One request per prompt, no scraping.</p>
-        <p class="note">Never commit a key or a cookie, and never paste output from debug mode into an issue: resty logs request headers.</p>
+        <h2>One key, in a header</h2>
+        <p class="section-lede" style="margin-bottom:0">The client sends your key in the <code>x-goog-api-key</code> header, never in the URL, so it stays out of access logs and error messages. <code>WithAPIKey</code> wins over <code>GEMINI_API_KEY</code>.</p>
+        <p class="section-lede" style="margin:16px 0 0">The Bard-era design copied the <code>__Secure-1PSID</code> session cookie out of the browser. That cookie opens the whole Google account and the web endpoint was never meant for automated use, so it is not supported.</p>
+        <p class="note">Never commit a key. Keep it in the environment or a secret manager, and restrict it in Google AI Studio.</p>
       </div>
       <div class="diagram reveal">
         <svg viewBox="0 0 460 300" role="img" aria-labelledby="auth-title">
-          <title id="auth-title">Planned sequence: the SDK posts the prompt with an API key header to the Gemini API, which returns the generated content.</title>
+          <title id="auth-title">Sequence: the SDK reads the key, posts the prompt with the key in a header to the Gemini API, which returns the generated content.</title>
           <defs>
-            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="head plan"/></marker>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="head"/></marker>
             <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="head back"/></marker>
           </defs>
           <rect class="box" x="30" y="16" width="120" height="30" rx="8"/>
@@ -456,16 +477,16 @@ APP_ENV=runner go test ./...   <span class="c"># loads env/.env.runner</span></c
           <line class="lane" x1="370" y1="50" x2="370" y2="290"/>
 
           <rect class="cache" x="30" y="66" width="120" height="34" rx="8"/>
-          <text class="msg" x="90" y="88" text-anchor="middle">key from env</text>
+          <text class="msg" x="90" y="88" text-anchor="middle">key · env/option</text>
 
-          <path class="arrow plan" d="M92 146H366" marker-end="url(#ah)"/>
+          <path class="arrow" d="M92 146H366" marker-end="url(#ah)"/>
           <text class="msg" x="230" y="128" text-anchor="middle">POST :generateContent</text>
           <text class="msg" x="230" y="166" text-anchor="middle">x-goog-api-key</text>
 
           <path class="arrow back" d="M368 226H94" marker-end="url(#ahb)"/>
           <text class="msg" x="230" y="218" text-anchor="middle">candidates[].content</text>
 
-          <text class="msg" x="230" y="276" text-anchor="middle">planned &middot; not implemented</text>
+          <text class="msg" x="230" y="276" text-anchor="middle">non-2xx &rarr; *APIError</text>
         </svg>
       </div>
     </div>
@@ -474,27 +495,25 @@ APP_ENV=runner go test ./...   <span class="c"># loads env/.env.runner</span></c
   <section id="roadmap">
     <div class="wrap">
       <p class="kicker">Roadmap</p>
-      <h2>In order</h2>
-      <p class="section-lede">Full list in the <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/backlog.md">backlog</a> and <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/milestone.md">milestones</a>.</p>
+      <h2>What comes next</h2>
+      <p class="section-lede">Tracked as <a href="https://github.com/Allan-Nava/go-gemini/milestones">GitHub milestones</a>, generated from <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/milestone.md">docs/milestone.md</a>.</p>
       <div class="steps">
         <ol class="step-list">
-          <li><b>Pick the API</b><span>Official Gemini REST API, key-based.</span></li>
-          <li><b>Errors, not panics</b><span>Functional options; drop the <code>env</code> package from the public API.</span></li>
-          <li><b>First real call</b><span><code>GenerateContent(ctx, prompt)</code> with typed request and response.</span></li>
-          <li><b>Tests and CI</b><span><code>httptest</code> fakes, race, lint, govulncheck; current Go and actions.</span></li>
+          <li><b>v0.2.0 &middot; first working client</b><span>Remove the Bard packages, then tag with a breaking-change note.</span></li>
+          <li><b>v0.3.0 &middot; SDK experience</b><span>Streaming, chat, generation parameters, retries, lint.</span></li>
+          <li><b>v1.0.0 &middot; stable API</b><span>Frozen surface, contributing guide, automated releases.</span></li>
         </ol>
         <div class="window reveal">
-          <div class="window-bar"><i></i><i></i><i></i><span>planned.go &middot; sketch</span></div>
-<pre><code><span class="c">// Target shape. Not implemented yet.</span>
-client, err := gogemini.<span class="f">New</span>(
-    gogemini.<span class="f">WithAPIKey</span>(os.<span class="f">Getenv</span>(<span class="s">"GEMINI_API_KEY"</span>)),
-    gogemini.<span class="f">WithModel</span>(<span class="s">"gemini-2.5-flash"</span>),
-)
-<span class="k">if</span> err != <span class="k">nil</span> {
+          <div class="window-bar"><i></i><i></i><i></i><span>errors.go</span></div>
+<pre><code><span class="c">// Handle quota errors differently from the rest</span>
+resp, err := client.<span class="f">GenerateContent</span>(ctx, prompt)
+<span class="k">var</span> apiErr *gogemini.<span class="t">APIError</span>
+<span class="k">switch</span> {
+<span class="k">case</span> errors.<span class="f">As</span>(err, &amp;apiErr) &amp;&amp; apiErr.StatusCode == <span class="s">429</span>:
+    <span class="c">// back off and retry later</span>
+<span class="k">case</span> err != <span class="k">nil</span>:
     <span class="k">return</span> err
-}
-
-resp, err := client.<span class="f">GenerateContent</span>(ctx, <span class="s">"Explain goroutines"</span>)</code></pre>
+}</code></pre>
         </div>
       </div>
     </div>

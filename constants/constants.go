@@ -1,3 +1,4 @@
+// Package constants is deprecated: Bard-era client, removed before v0.2.0. Use gogemini.New and Client.GenerateContent.
 package constants
 
 const (
