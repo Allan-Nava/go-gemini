@@ -399,7 +399,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
         <ol class="step-list">
           <li><b>Install</b><span><code>go get</code> the module. Go 1.26 or newer.</span></li>
           <li><b>Set the key</b><span><code>export GEMINI_API_KEY=…</code>, or pass <code>WithAPIKey</code>.</span></li>
-          <li><b>Create the client</b><span><code>gogemini.New(opts...)</code> checks the key and applies a 60 s timeout.</span></li>
+          <li><b>Create the client</b><span><code>gogemini.New(opts...)</code> checks the key; each attempt gets up to 5 minutes.</span></li>
           <li><b>Call</b><span><code>GenerateContent(ctx, prompt)</code>, then <code>resp.Text()</code>.</span></li>
         </ol>
         <div class="window reveal">
@@ -441,7 +441,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
           <tbody>
             <tr><td class="m">New(opts...)</td><td><span class="cmd">func</span></td><td class="d">Builds a client. Returns <code>ErrMissingAPIKey</code> when neither <code>WithAPIKey</code> nor <code>GEMINI_API_KEY</code> gives a key.</td></tr>
             <tr><td class="m">WithAPIKey · WithModel</td><td><span class="cmd">option</span></td><td class="d">Key and model. The default is <code>gemini-3.8-flash</code> and may change in a minor release; <code>Client.Model()</code> tells which one is used.</td></tr>
-            <tr><td class="m">WithHTTPClient · WithTimeout</td><td><span class="cmd">option</span></td><td class="d">Bring your own <code>*http.Client</code>, or change the 60 s timeout of the default one (must be positive).</td></tr>
+            <tr><td class="m">WithHTTPClient · WithTimeout</td><td><span class="cmd">option</span></td><td class="d">Bring your own <code>*http.Client</code>, and set the per-attempt limit with <code>WithTimeout</code> (5 min by default; for a stream it covers the start only).</td></tr>
             <tr><td class="m">WithBaseURL</td><td><span class="cmd">option</span></td><td class="d">Another host: a proxy, or an <code>httptest</code> server in your tests. HTTPS only; plain HTTP for loopback.</td></tr>
             <tr><td class="m">GenerateContent(ctx, prompt)</td><td><span class="cmd">method</span></td><td class="d">Sends one user prompt to <code>:generateContent</code> and returns the <code>*Response</code>.</td></tr>
             <tr><td class="m">Generate(ctx, req)</td><td><span class="cmd">method</span></td><td class="d">Same call with a full <code>GenerateContentRequest</code>, for callers that build the contents themselves.</td></tr>

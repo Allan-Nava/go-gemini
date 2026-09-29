@@ -43,13 +43,13 @@ const (
 	// defaultModel is used when WithModel is not given. It follows Google's
 	// recommended model and may change in a minor release.
 	defaultModel = "gemini-3.8-flash"
+	// defaultTimeout bounds one attempt when WithTimeout is not given; see WithTimeout.
+	defaultTimeout = 5 * time.Minute
 )
 
 const (
 	// DefaultBaseURL is the Gemini API host.
 	DefaultBaseURL = "https://generativelanguage.googleapis.com"
-	// DefaultTimeout bounds each request when WithHTTPClient and WithTimeout are not given.
-	DefaultTimeout = 60 * time.Second
 	// APIKeyEnv is the environment variable read when WithAPIKey is not given.
 	APIKeyEnv = "GEMINI_API_KEY"
 
@@ -111,8 +111,11 @@ func WithBaseURL(u string) Option { return func(c *Client) { c.baseURL = strings
 // as the default one; a CheckRedirect you set yourself is kept as it is.
 func WithHTTPClient(hc *http.Client) Option { return func(c *Client) { c.httpClient = hc } }
 
-// WithTimeout sets the timeout of the default HTTP client. It must be positive, and has
-// no effect with WithHTTPClient.
+// WithTimeout limits one attempt: for Generate and GenerateContent, the request and the
+// whole reply; for a stream, the wait until the reply starts, after which only ctx bounds
+// it, so a long answer is never cut. Each retry gets the limit again. The default is
+// 5 minutes; d must be positive. It also applies with WithHTTPClient, together with that
+// client's own Timeout, if any (leave that at 0 for long streams).
 func WithTimeout(d time.Duration) Option { return func(c *Client) { c.timeout = d } }
 
 // WithRetry sets how transient failures are retried; see RetryPolicy. Without it the
@@ -143,7 +146,7 @@ func WithGenerationConfig(cfg GenerationConfig) Option {
 // New returns a Client. It fails with ErrMissingAPIKey when no key is available, and with
 // ErrInvalidBaseURL, ErrInvalidTimeout, ErrEmptyModel or ErrInvalidRetryPolicy for invalid options.
 func New(opts ...Option) (*Client, error) {
-	c := &Client{baseURL: DefaultBaseURL, model: defaultModel, timeout: DefaultTimeout, retry: DefaultRetryPolicy()}
+	c := &Client{baseURL: DefaultBaseURL, model: defaultModel, timeout: defaultTimeout, retry: DefaultRetryPolicy()}
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -167,7 +170,9 @@ func New(opts ...Option) (*Client, error) {
 	}
 	switch {
 	case c.httpClient == nil:
-		c.httpClient = &http.Client{Timeout: c.timeout, CheckRedirect: sameHostRedirect}
+		// No http.Client.Timeout: it would also cut the body of a long stream. The SDK
+		// bounds each attempt itself, through the request's context (see WithTimeout).
+		c.httpClient = &http.Client{CheckRedirect: sameHostRedirect}
 	case c.httpClient.CheckRedirect == nil:
 		hc := *c.httpClient
 		hc.CheckRedirect = sameHostRedirect

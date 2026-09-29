@@ -10,8 +10,9 @@ import (
 )
 
 // RetryPolicy controls how the client retries transient failures: an APIError
-// whose Retryable method reports true (408, 429, 5xx), or a network error.
-// Context cancellation and ErrRedirectOtherHost are never retried.
+// whose Retryable method reports true (408, 429, 5xx), a network error, or an
+// attempt that ran out of time (see WithTimeout). Nothing is retried once the
+// caller's context is done, and ErrRedirectOtherHost never is.
 //
 // The wait before retry n is InitialDelay·2ⁿ⁻¹, capped at MaxDelay, with random
 // jitter between half and all of it. When Google sends a RetryDelay the client
@@ -58,10 +59,10 @@ func (p RetryPolicy) wait(n int, serverDelay time.Duration) (time.Duration, bool
 	return max(d, serverDelay), true
 }
 
-// retryable reports whether err is worth another attempt.
-func retryable(err error) bool {
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) ||
-		errors.Is(err, ErrRedirectOtherHost) {
+// retryable reports whether err is worth another attempt. Once the caller's ctx is
+// done nothing is; an attempt that hit the client's own timeout is.
+func retryable(ctx context.Context, err error) bool {
+	if ctx.Err() != nil || errors.Is(err, ErrRedirectOtherHost) {
 		return false
 	}
 	var apiErr *APIError
@@ -69,7 +70,7 @@ func retryable(err error) bool {
 		return apiErr.Retryable()
 	}
 	var urlErr *url.Error
-	return errors.As(err, &urlErr) // the request did not get an answer
+	return errors.Is(err, context.DeadlineExceeded) || errors.As(err, &urlErr) // no answer
 }
 
 func serverDelay(err error) time.Duration {

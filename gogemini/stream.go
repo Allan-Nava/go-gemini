@@ -38,11 +38,12 @@ func (c *Client) GenerateStream(ctx context.Context, req *GenerateContentRequest
 		return yieldErr(err)
 	}
 	return func(yield func(*Response, error) bool) {
-		httpResp, err := c.send(ctx, ":streamGenerateContent?alt=sse", body)
+		httpResp, release, err := c.send(ctx, ":streamGenerateContent?alt=sse", body, true)
 		if err != nil {
 			yield(nil, err)
 			return
 		}
+		defer release()
 		// Close without draining: after a break the server is still sending, and reading
 		// the rest would block until it finishes or the client times out.
 		defer func() { _ = httpResp.Body.Close() }()

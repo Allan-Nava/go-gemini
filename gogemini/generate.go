@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // maxResponseBody caps how much of a successful reply is read.
@@ -31,10 +33,11 @@ func (c *Client) Generate(ctx context.Context, req *GenerateContentRequest) (*Re
 	if err != nil {
 		return nil, err
 	}
-	httpResp, err := c.send(ctx, ":generateContent", body)
+	httpResp, release, err := c.send(ctx, ":generateContent", body, false)
 	if err != nil {
 		return nil, err
 	}
+	defer release()
 	defer drainClose(httpResp)
 
 	var out Response
@@ -63,27 +66,61 @@ func (c *Client) encode(req *GenerateContentRequest) ([]byte, error) {
 	return body, nil
 }
 
-// send POSTs body to the model's method and returns a 2xx response, whose body the
-// caller must close. Non-2xx replies become *APIError; transient failures are retried.
-func (c *Client) send(ctx context.Context, method string, body []byte) (*http.Response, error) {
+// send POSTs body to the model's method and returns a 2xx response. The caller must
+// close its body and then call release. Non-2xx replies become *APIError; transient
+// failures, attempt timeouts included, are retried.
+//
+// Each attempt runs under its own context. For a plain call it has the client's timeout
+// and covers reading the reply, which the caller does before release. For a stream the
+// timeout only covers the wait for the reply to start: a long stream must not be cut.
+func (c *Client) send(ctx context.Context, method string, body []byte, stream bool) (*http.Response, func(), error) {
 	var lastErr error
 	for attempt := 1; ; attempt++ {
-		resp, err := c.sendOnce(ctx, method, body)
+		resp, release, err := c.attempt(ctx, method, body, stream)
 		if err == nil {
-			return resp, nil
+			return resp, release, nil
 		}
 		lastErr = err
-		if attempt >= c.retry.MaxAttempts || !retryable(err) {
-			return nil, lastErr
+		if attempt >= c.retry.MaxAttempts || !retryable(ctx, err) {
+			return nil, nil, lastErr
 		}
 		d, ok := c.retry.wait(attempt, serverDelay(err))
 		if !ok {
-			return nil, lastErr
+			return nil, nil, lastErr
 		}
 		if err := sleep(ctx, d); err != nil {
-			return nil, fmt.Errorf("gogemini: %w while waiting to retry, after %d attempts: %w", err, attempt, lastErr)
+			return nil, nil, fmt.Errorf("gogemini: %w while waiting to retry, after %d attempts: %w", err, attempt, lastErr)
 		}
 	}
+}
+
+// errNotStarted cancels a stream attempt whose reply did not start within the timeout.
+var errNotStarted = errors.New("reply did not start in time")
+
+func (c *Client) attempt(ctx context.Context, method string, body []byte, stream bool) (*http.Response, func(), error) {
+	var actx context.Context
+	var release func()
+	var started func() // called once the reply has started
+	if stream {
+		cctx, cancel := context.WithCancelCause(ctx)
+		timer := time.AfterFunc(c.timeout, func() { cancel(errNotStarted) })
+		actx, release, started = cctx, func() { cancel(nil) }, func() { timer.Stop() }
+	} else {
+		tctx, cancel := context.WithTimeout(ctx, c.timeout)
+		actx, release, started = tctx, cancel, func() {}
+	}
+	resp, err := c.sendOnce(actx, method, body)
+	started()
+	if err != nil {
+		// Check before release, which cancels actx too. If our own limit fired and not
+		// the caller's, report a timeout, which is retried.
+		if ctx.Err() == nil && actx.Err() != nil {
+			err = fmt.Errorf("gogemini: no reply within %v: %w", c.timeout, context.DeadlineExceeded)
+		}
+		release()
+		return nil, nil, err
+	}
+	return resp, release, nil
 }
 
 func (c *Client) sendOnce(ctx context.Context, method string, body []byte) (*http.Response, error) {

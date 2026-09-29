@@ -22,3 +22,17 @@ func TestRetryWaitBounds(t *testing.T) {
 		t.Error("a server delay above MaxDelay must give up")
 	}
 }
+
+func TestDefaultClientHasNoHTTPTimeout(t *testing.T) {
+	c, err := New(WithAPIKey("k"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// http.Client.Timeout would also cut the body of a long stream.
+	if c.httpClient.Timeout != 0 {
+		t.Errorf("default http.Client.Timeout = %v, want 0", c.httpClient.Timeout)
+	}
+	if c.timeout != 5*time.Minute {
+		t.Errorf("default attempt timeout = %v, want 5m", c.timeout)
+	}
+}

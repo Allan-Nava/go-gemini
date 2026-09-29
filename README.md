@@ -51,7 +51,7 @@ Options for `gogemini.New`:
 |---|---|---|
 | `WithAPIKey(key)` | `$GEMINI_API_KEY` | API key; wins over the environment |
 | `WithModel(name)` | `gemini-3.8-flash`, may change in a minor release | model; a `models/` prefix is accepted; read it with `Client.Model()` |
-| `WithTimeout(d)` | 60 s | timeout of the default HTTP client; must be positive |
+| `WithTimeout(d)` | 5 min | limit for one attempt: the whole reply for `Generate`, the start for a stream; must be positive |
 | `WithHTTPClient(c)` | — | your own `*http.Client` (transport, TLS, timeouts) |
 | `WithBaseURL(u)` | `https://generativelanguage.googleapis.com` | proxy or test server; HTTPS only, plain HTTP allowed for loopback |
 
@@ -161,6 +161,14 @@ set -a && source ./.env && set +a && go run ./examples/generate "Explain gorouti
 
 Flags: `-model`, `-timeout`, `-stream` (print the answer as it arrives) and `-system` (system
 instruction). The model and token usage are printed on stderr.
+
+## Upgrading from v0.4.0
+
+- The exported `DefaultTimeout` constant is gone, and the default is now 5 minutes per attempt.
+- `WithTimeout` now limits one attempt: the request and the whole reply for `Generate`, and only the
+  wait for the reply to start for a stream, which is then bounded by your `ctx` alone. Before, a
+  60-second `http.Client.Timeout` could cut a long stream. It also applies with `WithHTTPClient` now.
+- An attempt that runs out of time is retried; your own `ctx` deadline is not.
 
 ## Upgrading from v0.3.0
 

@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- **Long streams are no longer cut.** The default client set `http.Client.Timeout` (60 s), which also
+  covers reading the body, so a stream longer than that stopped halfway. Each attempt is now bounded
+  through its context instead: for `Generate`, the request and the whole reply; for a stream, only the
+  wait for the reply to start.
+
+### Changed
+- **Breaking:** the exported `DefaultTimeout` constant is removed; the default is now 5 minutes per
+  attempt. Constants whose value may change are not exported (see `docs/api-review-v1.0.0-2026-09-29.md`).
+- `WithTimeout` also applies with `WithHTTPClient`, and an attempt that runs out of time is retried.
+  The caller's own `ctx` deadline is never retried.
+- `examples/generate`: `-timeout` defaults to 5 minutes.
+
 ## [v0.4.0] — 2026-09-29
 
 Streaming, multi-turn chat, generation parameters and retries: the SDK experience before v1.0.0.

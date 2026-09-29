@@ -108,7 +108,7 @@ restano quelli originali, perché sono stabili.
 > cambiamento incompatibile); cambia il comportamento di default: ora i 429/5xx vengono ritentati. `golangci-lint` in
 > CI, solo Renovate. 14 mutazioni del codice nuovo, tutte intercettate dai test (il mutex della chat con `-race`).
 
-## v1.0.0 — API stabile (preparazione completa, 2026-09-29)
+## v1.0.0 — API stabile (revisione finale fatta, in attesa della prova reale e del tag)
 
 **Obiettivo:** una superficie pubblica su cui gli utenti possano contare senza breaking change.
 
@@ -117,6 +117,11 @@ restano quelli originali, perché sono stabili.
 - [x] <!-- id:v100-coverage --> **Copertura di test** sulle funzioni pubbliche.
 - [ ] <!-- id:v100-release --> **Rilascio v1.0.0**: tag `v1.0.0` dopo la v0.4.0, quando streaming, chat e retry hanno confermato il design; da lì `gorelease` in CI blocca
       ogni cambiamento incompatibile dell'API esportata.
+
+> **Revisione finale 2026-09-29** ([`api-review-v1.0.0-2026-09-29.md`](api-review-v1.0.0-2026-09-29.md)): trovato e corretto
+> il taglio degli stream lunghi (`http.Client.Timeout` comprende la lettura del body); timeout ora per tentativo via context,
+> default 5 minuti, `DefaultTimeout` non più esportata. Modello di default confermato `gemini-3.8-flash`. Resta: prova reale
+> (normale e `-stream`), poi `version` = `1.0.0`, changelog con data, tag.
 
 > **Avanzamento 2026-09-29**: preparazione completa. API rivista (21 simboli, tutti documentati, esempi per
 > `New`, `GenerateContent`, `Generate`, `APIError`, `WithHTTPClient`); costanti che cambiano valore

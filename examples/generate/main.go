@@ -20,14 +20,14 @@ import (
 
 func main() {
 	model := flag.String("model", "", "model name (default: the SDK's recommended model)")
-	timeout := flag.Duration("timeout", 60*time.Second, "request timeout")
+	timeout := flag.Duration("timeout", 5*time.Minute, "time limit for one attempt (for -stream: until the answer starts)")
 	stream := flag.Bool("stream", false, "print the answer as it is generated")
 	system := flag.String("system", "", "system instruction")
 	flag.Parse()
 
 	prompt := strings.Join(flag.Args(), " ")
 	if prompt == "" {
-		fmt.Fprintln(os.Stderr, "usage: generate [-model name] [-timeout 60s] [-stream] [-system text] <prompt>")
+		fmt.Fprintln(os.Stderr, "usage: generate [-model name] [-timeout 5m] [-stream] [-system text] <prompt>")
 		os.Exit(2)
 	}
 
