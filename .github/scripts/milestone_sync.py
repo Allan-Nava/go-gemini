@@ -120,6 +120,8 @@ class GitHub:
         except urllib.error.HTTPError as e:
             if e.code == 404 and method == "GET":
                 return None, ""
+            if e.code == 410 and method == "GET":  # a deleted issue: exists, but has no content
+                return {}, ""
             sys.exit(f"GitHub {method} {url}: HTTP {e.code} {e.read().decode(errors='replace')[:300]}")
 
     def get_all(self, path):
@@ -194,11 +196,22 @@ def sync(gh, milestones):
         for it in ms["items"]:
             wanted[it["id"]] = it
 
-    # issues: list them all rather than filtering by label — the label-filtered listing lags a few
-    # seconds behind writes, and a second run right after the first would create duplicates.
+    # Issue listings lag a few seconds behind writes, with or without a label filter: two runs
+    # in a row created duplicates twice (#46-#47, #72-#76). Reads by number are up to date, so
+    # after the listing, fetch the numbers above the highest one listed until one does not exist.
+    listed = gh.get_all("/issues?state=all&per_page=100")
+    n = max((i["number"] for i in listed), default=0) + 1
+    while True:
+        issue, _ = gh.call("GET", f"/issues/{n}")
+        if issue is None:
+            break
+        if issue:
+            listed.append(issue)
+        n += 1
+
     by_id = {}
     by_title = {it["title"]: item_id for item_id, it in wanted.items()}
-    for issue in sorted(gh.get_all("/issues?state=all&per_page=100"), key=lambda i: i["number"]):
+    for issue in sorted(listed, key=lambda i: i["number"]):
         if "pull_request" in issue:
             continue
         m = MARKER_RE.search(issue.get("body") or "")

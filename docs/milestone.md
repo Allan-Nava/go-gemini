@@ -9,9 +9,9 @@ audit: [`audit-v0.2.0-2026-09-29.md`](audit-v0.2.0-2026-09-29.md).
 > item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
 ```
-  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (rilasciata)     v0.4.0 (rilasciata) v1.0.0 (rilasciata)
-  scheletro Bard ──► primo client funzionante ──► hardening + pulizia ──► esperienza SDK ──► API stabile
-                     API ufficiale, 0 dipendenze   audit v0.2.0, prep 1.0   streaming, chat    API congelata
+  v0.2.0 ─► v0.3.0 ─► v0.4.0 ─► v1.0.0 (rilasciata) ─► v1.1.0 (nuova) ─────────────► v1.2.0
+  client    hardening  streaming  API congelata        immagini, sicurezza, JSON,     tool calling
+  ufficiale            chat, retry                     thinking, chat stream, token
 ```
 
 ## v0.2.0 — Primo client funzionante (rilasciata, 2026-09-29)
@@ -130,6 +130,41 @@ restano quelli originali, perché sono stabili.
 > `New`, `GenerateContent`, `Generate`, `APIError`, `WithHTTPClient`); costanti che cambiano valore
 > (`version`, `defaultModel`) non più esportate, perché `apidiff` le tratta come incompatibili; gate CI su copertura
 > (≥ 90%, oggi 96,6%) e su `gorelease`; `CONTRIBUTING.md`, `SECURITY.md`, workflow `release.yml` dal changelog.
+
+## v1.1.0 — Multimodale, sicurezza e output strutturato (nuova, 2026-09-29)
+
+**Obiettivo:** coprire i casi d'uso più richiesti dopo il testo semplice (immagini e file, filtri di sicurezza, risposte JSON con schema, conteggio dei token), solo con aggiunte compatibili.
+
+Vincolo: dalla v1.0.0 l'API è congelata. Ogni item **aggiunge** campi, tipi, metodi o opzioni; `api-compat` in CI
+blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
+
+- [ ] <!-- id:v110-inline-data --> **Immagini e file inline**: `Part.InlineData` (`*Blob{MIMEType, Data []byte}`, base64 via `encoding/json`) e
+      `Part.FileData` (`*FileData{MIMEType, FileURI}`); costruttori `TextPart`, `InlineDataPart`; esempio con un'immagine. Test sul JSON inviato.
+- [ ] <!-- id:v110-safety --> **Impostazioni e valutazioni di sicurezza**: `GenerateContentRequest.SafetySettings` (`category`, `threshold`) e
+      opzione `WithSafetySettings` come default del client; `SafetyRatings` su `Candidate` e `PromptFeedback`.
+- [ ] <!-- id:v110-structured-output --> **Output strutturato**: `GenerationConfig.ResponseSchema` (schema JSON come `any`, serializzato
+      così com'è) insieme a `ResponseMIMEType: "application/json"`; esempio che decodifica la risposta in una struct.
+- [ ] <!-- id:v110-thinking --> **Ragionamento dei modelli**: `GenerationConfig.ThinkingConfig` (`IncludeThoughts`, `ThinkingBudget`) e
+      `Part.Thought`; `Response.Text()` salta le parti di ragionamento (oggi non arrivano, quindi nessun cambiamento per chi non le chiede),
+      `Response.Thoughts()` le restituisce.
+- [ ] <!-- id:v110-chat-stream --> **Chat in streaming**: `Chat.SendStream(ctx, text)` → `iter.Seq2[*Response, error]`; a fine stream la risposta
+      completa entra nella storia, su errore o `break` la storia resta com'era.
+- [ ] <!-- id:v110-count-tokens --> **Conteggio dei token**: `Client.CountTokens(ctx, req) (int, error)` su `:countTokens` (endpoint e campo
+      `totalTokens` da verificare sulla documentazione prima di implementare), stesso percorso di invio, retry e timeout.
+- [ ] <!-- id:v110-release --> **Rilascio v1.1.0**: `gorelease` senza cambiamenti incompatibili, prova reale a mano (testo, immagine, stream
+      della chat), `version` = `1.1.0`, changelog con data, tag — la release la crea il workflow.
+
+## v1.2.0 — Tool calling
+
+**Obiettivo:** far chiamare al modello funzioni Go dichiarate dal chiamante, con il giro domanda → chiamata → risultato → risposta gestito dall'SDK.
+
+- [ ] <!-- id:v120-tools --> **Dichiarazione degli strumenti**: `GenerateContentRequest.Tools` (`FunctionDeclarations` con `Name`, `Description`,
+      schema dei parametri) e `ToolConfig` (`functionCallingConfig.mode`: `AUTO`, `ANY`, `NONE`, `VALIDATED`).
+- [ ] <!-- id:v120-function-parts --> **Chiamate e risultati**: `Part.FunctionCall` (`Name`, `Args`) e `Part.FunctionResponse` (`Name`, `Response`);
+      `Response.FunctionCalls()` per leggerle.
+- [ ] <!-- id:v120-chat-tools --> **Giro automatico in chat**: handler registrati per nome; `Chat.Send` esegue le chiamate, rimanda i risultati e
+      restituisce la risposta finale, con un limite al numero di giri e il `ctx` del chiamante passato agli handler.
+- [ ] <!-- id:v120-release --> **Rilascio v1.2.0**: `gorelease` senza cambiamenti incompatibili, prova reale con una funzione di esempio, tag.
 
 ## Storico
 
