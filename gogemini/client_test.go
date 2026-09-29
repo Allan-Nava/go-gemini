@@ -20,7 +20,9 @@ func newTestClient(t *testing.T, h http.HandlerFunc, opts ...gogemini.Option) *g
 	t.Helper()
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
-	c, err := gogemini.New(append([]gogemini.Option{gogemini.WithAPIKey(testKey), gogemini.WithBaseURL(srv.URL)}, opts...)...)
+	// Retries are off here, so each test sees exactly one attempt; retry_test.go covers them.
+	base := []gogemini.Option{gogemini.WithAPIKey(testKey), gogemini.WithBaseURL(srv.URL), gogemini.WithRetry(gogemini.RetryPolicy{MaxAttempts: 1})}
+	c, err := gogemini.New(append(base, opts...)...)
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -169,7 +171,9 @@ func TestNewAPIKey(t *testing.T) {
 	}
 
 	c, _ = gogemini.New(gogemini.WithAPIKey("explicit"), gogemini.WithBaseURL(srv.URL))
-	c.GenerateContent(context.Background(), "hi")
+	if _, err := c.GenerateContent(context.Background(), "hi"); err != nil {
+		t.Fatal(err)
+	}
 	if got != "explicit" {
 		t.Errorf("WithAPIKey should win over the env: got %q", got)
 	}

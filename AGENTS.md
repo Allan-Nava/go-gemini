@@ -12,7 +12,7 @@ contraddirlo.
 - **Nessun segreto**: mai chiavi API, cookie o token in codice, test, esempi, log o issue. Esempi con
   placeholder (`YOUR_API_KEY`); la chiave reale sta in `GEMINI_API_KEY` o in un `.env` (ignorato da git).
 - **Verifiche prima di dire "fatto"**: `gofmt -l .`, `go vet ./...`, `go test -race ./...`,
-  `go mod tidy -diff`, `staticcheck`, `govulncheck`.
+  `go mod tidy -diff`, `staticcheck`, `govulncheck`, `golangci-lint`.
 - **Documentare**: ogni modifica visibile agli utenti aggiorna `README.md`, `docs/index.html` e
   `CHANGELOG.md` (*Unreleased*) nello stesso commit.
 - **Pianificare in `docs/milestone.md`**: è la fonte di verità delle milestone e delle issue GitHub

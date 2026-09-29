@@ -1,0 +1,17 @@
+# golangci-lint v2. The default linters (errcheck, govet, ineffassign, staticcheck, unused)
+# plus a few that catch real bugs in HTTP client code.
+version: "2"
+
+linters:
+  enable:
+    - bodyclose
+    - errorlint
+    - misspell
+    - nilerr
+    - noctx
+  exclusions:
+    rules:
+      # httptest handlers write canned replies; a failed write only fails that test.
+      - path: _test\.go
+        linters: [errcheck]
+        text: "`(io\\.WriteString|fmt\\.Fprintf?)`"

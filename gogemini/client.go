@@ -12,6 +12,12 @@
 //	fmt.Println(resp.Text())
 //
 // Without WithAPIKey the key is read from the GEMINI_API_KEY environment variable.
+//
+// Beyond a single call: GenerateContentStream streams the answer as an iterator,
+// NewChat keeps a multi-turn conversation, WithSystemInstruction and
+// WithGenerationConfig set per-client defaults, and transient failures (429, 5xx)
+// are retried with exponential backoff according to WithRetry.
+//
 // The key is sent in the x-goog-api-key header, only over HTTPS (plain HTTP is
 // accepted for loopback test servers), and never to a host other than the base URL:
 // redirects to another host are refused with ErrRedirectOtherHost.
@@ -64,6 +70,8 @@ var (
 	// ErrEmptyRequest is returned, without sending anything, for a nil request,
 	// a request with no contents, or an empty prompt.
 	ErrEmptyRequest = errors.New("gogemini: empty request")
+	// ErrInvalidRetryPolicy is returned by New when WithRetry is given an unusable policy.
+	ErrInvalidRetryPolicy = errors.New("gogemini: invalid retry policy")
 	// ErrRedirectOtherHost is returned when the server redirects to another host or scheme.
 	// The redirect is not followed, so the API key is never sent there.
 	ErrRedirectOtherHost = errors.New("gogemini: refused redirect to another host")
@@ -71,11 +79,14 @@ var (
 
 // Client calls the Gemini API. It is safe for concurrent use.
 type Client struct {
-	apiKey     string
-	baseURL    string
-	model      string
-	timeout    time.Duration
-	httpClient *http.Client
+	apiKey            string
+	baseURL           string
+	model             string
+	timeout           time.Duration
+	httpClient        *http.Client
+	retry             RetryPolicy
+	systemInstruction *Content
+	generationConfig  *GenerationConfig
 }
 
 // Option configures a Client.
@@ -104,10 +115,35 @@ func WithHTTPClient(hc *http.Client) Option { return func(c *Client) { c.httpCli
 // no effect with WithHTTPClient.
 func WithTimeout(d time.Duration) Option { return func(c *Client) { c.timeout = d } }
 
+// WithRetry sets how transient failures are retried; see RetryPolicy. Without it the
+// client uses DefaultRetryPolicy. RetryPolicy{MaxAttempts: 1} disables retries.
+func WithRetry(p RetryPolicy) Option { return func(c *Client) { c.retry = p } }
+
+// WithSystemInstruction sets a system instruction for every request that does not
+// carry its own GenerateContentRequest.SystemInstruction. A blank text sets none.
+func WithSystemInstruction(text string) Option {
+	return func(c *Client) {
+		if strings.TrimSpace(text) == "" {
+			c.systemInstruction = nil
+			return
+		}
+		c.systemInstruction = &Content{Parts: []Part{{Text: text}}}
+	}
+}
+
+// WithGenerationConfig sets the generation parameters for every request that does not
+// carry its own GenerateContentRequest.GenerationConfig. The config is copied.
+func WithGenerationConfig(cfg GenerationConfig) Option {
+	return func(c *Client) {
+		cfg.StopSequences = append([]string(nil), cfg.StopSequences...)
+		c.generationConfig = &cfg
+	}
+}
+
 // New returns a Client. It fails with ErrMissingAPIKey when no key is available, and with
-// ErrInvalidBaseURL, ErrInvalidTimeout or ErrEmptyModel for invalid options.
+// ErrInvalidBaseURL, ErrInvalidTimeout, ErrEmptyModel or ErrInvalidRetryPolicy for invalid options.
 func New(opts ...Option) (*Client, error) {
-	c := &Client{baseURL: DefaultBaseURL, model: defaultModel, timeout: DefaultTimeout}
+	c := &Client{baseURL: DefaultBaseURL, model: defaultModel, timeout: DefaultTimeout, retry: DefaultRetryPolicy()}
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -124,6 +160,9 @@ func New(opts ...Option) (*Client, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidTimeout, c.timeout)
 	}
 	if err := checkBaseURL(c.baseURL); err != nil {
+		return nil, err
+	}
+	if err := c.retry.validate(); err != nil {
 		return nil, err
 	}
 	switch {
@@ -143,7 +182,7 @@ func (c *Client) Model() string { return c.model }
 func checkBaseURL(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidBaseURL, err)
+		return fmt.Errorf("%w: %w", ErrInvalidBaseURL, err)
 	}
 	if u.Host == "" {
 		return fmt.Errorf("%w: %q has no host", ErrInvalidBaseURL, raw)

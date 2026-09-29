@@ -9,87 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"unicode/utf8"
 )
 
-const (
-	// maxErrorBody caps how much of an error reply is read.
-	maxErrorBody = 1 << 20
-	// maxResponseBody caps how much of a successful reply is read.
-	maxResponseBody = 32 << 20
-	// maxErrorMessage caps APIError.Message, so a proxy's HTML page does not flood the logs.
-	maxErrorMessage = 1024
-)
-
-// Part is one piece of a message. Only text is supported for now.
-type Part struct {
-	Text string `json:"text,omitempty"`
-}
-
-// Content is a message: a role ("user" or "model") and its parts.
-type Content struct {
-	Role  string `json:"role,omitempty"`
-	Parts []Part `json:"parts"`
-}
-
-// GenerateContentRequest is the body of a generateContent call.
-type GenerateContentRequest struct {
-	Contents []Content `json:"contents"`
-}
-
-// Candidate is one generated answer.
-type Candidate struct {
-	Content      Content `json:"content"`
-	FinishReason string  `json:"finishReason,omitempty"`
-	Index        int     `json:"index"`
-}
-
-// PromptFeedback reports why a prompt was blocked, if it was.
-type PromptFeedback struct {
-	BlockReason string `json:"blockReason,omitempty"`
-}
-
-// UsageMetadata counts the tokens of a call.
-type UsageMetadata struct {
-	PromptTokenCount     int `json:"promptTokenCount"`
-	CandidatesTokenCount int `json:"candidatesTokenCount"`
-	TotalTokenCount      int `json:"totalTokenCount"`
-}
-
-// Response is the reply of a generateContent call.
-type Response struct {
-	Candidates     []Candidate     `json:"candidates"`
-	PromptFeedback *PromptFeedback `json:"promptFeedback,omitempty"`
-	UsageMetadata  *UsageMetadata  `json:"usageMetadata,omitempty"`
-	ModelVersion   string          `json:"modelVersion,omitempty"`
-}
-
-// Text returns the text of the first candidate, or "" when there is none
-// (for example when the prompt was blocked: see PromptFeedback).
-func (r *Response) Text() string {
-	if r == nil || len(r.Candidates) == 0 {
-		return ""
-	}
-	var b strings.Builder
-	for _, p := range r.Candidates[0].Content.Parts {
-		b.WriteString(p.Text)
-	}
-	return b.String()
-}
-
-// APIError is a non-2xx reply from the Gemini API.
-type APIError struct {
-	StatusCode int    // HTTP status, e.g. 429
-	Status     string // Google status, e.g. "RESOURCE_EXHAUSTED"
-	Message    string
-}
-
-func (e *APIError) Error() string {
-	if e.Status != "" {
-		return fmt.Sprintf("gogemini: HTTP %d %s: %s", e.StatusCode, e.Status, e.Message)
-	}
-	return fmt.Sprintf("gogemini: HTTP %d: %s", e.StatusCode, e.Message)
-}
+// maxResponseBody caps how much of a successful reply is read.
+const maxResponseBody = 32 << 20
 
 // GenerateContent sends a single user prompt and returns the model's reply.
 // An empty or blank prompt returns ErrEmptyRequest without sending anything.
@@ -97,22 +20,74 @@ func (c *Client) GenerateContent(ctx context.Context, prompt string) (*Response,
 	if strings.TrimSpace(prompt) == "" {
 		return nil, ErrEmptyRequest
 	}
-	return c.Generate(ctx, &GenerateContentRequest{
-		Contents: []Content{{Role: "user", Parts: []Part{{Text: prompt}}}},
-	})
+	return c.Generate(ctx, &GenerateContentRequest{Contents: []Content{userText(prompt)}})
 }
 
 // Generate sends a full request, for callers that build the contents themselves.
 // A nil request or one with no contents returns ErrEmptyRequest without sending anything.
+// Transient failures are retried according to the client's RetryPolicy.
 func (c *Client) Generate(ctx context.Context, req *GenerateContentRequest) (*Response, error) {
+	body, err := c.encode(req)
+	if err != nil {
+		return nil, err
+	}
+	httpResp, err := c.send(ctx, ":generateContent", body)
+	if err != nil {
+		return nil, err
+	}
+	defer drainClose(httpResp)
+
+	var out Response
+	if err := json.NewDecoder(io.LimitReader(httpResp.Body, maxResponseBody)).Decode(&out); err != nil {
+		return nil, fmt.Errorf("gogemini: decode response: %w", err)
+	}
+	return &out, nil
+}
+
+// encode validates req, applies the client's defaults to a copy and marshals it.
+func (c *Client) encode(req *GenerateContentRequest) ([]byte, error) {
 	if req == nil || len(req.Contents) == 0 {
 		return nil, ErrEmptyRequest
 	}
-	body, err := json.Marshal(req)
+	r := *req
+	if r.SystemInstruction == nil {
+		r.SystemInstruction = c.systemInstruction
+	}
+	if r.GenerationConfig == nil {
+		r.GenerationConfig = c.generationConfig
+	}
+	body, err := json.Marshal(&r)
 	if err != nil {
 		return nil, fmt.Errorf("gogemini: encode request: %w", err)
 	}
-	endpoint := c.baseURL + "/v1beta/models/" + url.PathEscape(c.model) + ":generateContent"
+	return body, nil
+}
+
+// send POSTs body to the model's method and returns a 2xx response, whose body the
+// caller must close. Non-2xx replies become *APIError; transient failures are retried.
+func (c *Client) send(ctx context.Context, method string, body []byte) (*http.Response, error) {
+	var lastErr error
+	for attempt := 1; ; attempt++ {
+		resp, err := c.sendOnce(ctx, method, body)
+		if err == nil {
+			return resp, nil
+		}
+		lastErr = err
+		if attempt >= c.retry.MaxAttempts || !retryable(err) {
+			return nil, lastErr
+		}
+		d, ok := c.retry.wait(attempt, serverDelay(err))
+		if !ok {
+			return nil, lastErr
+		}
+		if err := sleep(ctx, d); err != nil {
+			return nil, fmt.Errorf("gogemini: %w while waiting to retry, after %d attempts: %w", err, attempt, lastErr)
+		}
+	}
+}
+
+func (c *Client) sendOnce(ctx context.Context, method string, body []byte) (*http.Response, error) {
+	endpoint := c.baseURL + "/v1beta/models/" + url.PathEscape(c.model) + method
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("gogemini: build request: %w", err)
@@ -122,55 +97,19 @@ func (c *Client) Generate(ctx context.Context, req *GenerateContentRequest) (*Re
 	httpReq.Header.Set("x-goog-api-key", c.apiKey)
 	httpReq.Header.Set("User-Agent", userAgent)
 
-	httpResp, err := c.httpClient.Do(httpReq)
+	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("gogemini: %w", err)
 	}
-	defer func() {
-		// Drain what is left so the connection can be reused.
-		io.Copy(io.Discard, io.LimitReader(httpResp.Body, maxErrorBody))
-		httpResp.Body.Close()
-	}()
-
-	if httpResp.StatusCode < 200 || httpResp.StatusCode > 299 {
-		return nil, decodeError(httpResp)
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		defer drainClose(resp)
+		return nil, decodeError(resp)
 	}
-	var out Response
-	if err := json.NewDecoder(io.LimitReader(httpResp.Body, maxResponseBody)).Decode(&out); err != nil {
-		return nil, fmt.Errorf("gogemini: decode response: %w", err)
-	}
-	return &out, nil
+	return resp, nil
 }
 
-func decodeError(resp *http.Response) error {
-	raw, _ := io.ReadAll(io.LimitReader(resp.Body, maxErrorBody))
-	apiErr := &APIError{StatusCode: resp.StatusCode}
-	var wrapped struct {
-		Error struct {
-			Message string `json:"message"`
-			Status  string `json:"status"`
-		} `json:"error"`
-	}
-	if json.Unmarshal(raw, &wrapped) == nil && wrapped.Error.Message != "" {
-		apiErr.Message, apiErr.Status = wrapped.Error.Message, wrapped.Error.Status
-	} else {
-		apiErr.Message = strings.TrimSpace(string(raw))
-		if apiErr.Message == "" {
-			apiErr.Message = http.StatusText(resp.StatusCode)
-		}
-	}
-	apiErr.Message = truncate(apiErr.Message, maxErrorMessage)
-	return apiErr
-}
-
-// truncate shortens s to at most n bytes without splitting a UTF-8 character.
-func truncate(s string, n int) string {
-	if len(s) <= n {
-		return s
-	}
-	cut := n
-	for cut > 0 && !utf8.RuneStart(s[cut]) {
-		cut--
-	}
-	return s[:cut] + "…"
+// drainClose reads what is left of the body, so the connection can be reused, and closes it.
+func drainClose(resp *http.Response) {
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, maxErrorBody))
+	_ = resp.Body.Close()
 }

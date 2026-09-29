@@ -54,6 +54,17 @@ jobs:
   #
 #
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+
   # From v1.0.0 on, an incompatible change to the exported API fails the build.
   # Before v1.0.0 it is only reported, since minor versions may still break.
   api-compat:

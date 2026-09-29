@@ -59,14 +59,65 @@ Options for `gogemini.New`:
 `GenerateContentRequest`. `Response.Text()` returns the first candidate's text, and is empty when
 the prompt was blocked (`Response.PromptFeedback.BlockReason`).
 
+### Streaming
+
+```go
+for chunk, err := range client.GenerateContentStream(ctx, "Tell me a short story") {
+	if err != nil {
+		return err
+	}
+	fmt.Print(chunk.Text())
+}
+```
+
+`GenerateStream(ctx, req)` is the same with a full request. Breaking out of the loop closes the
+connection. Failures before the first chunk are retried; after that the error is yielded and the
+stream ends.
+
+### Chat
+
+```go
+chat := client.NewChat()
+resp, err := chat.Send(ctx, "What are goroutines?")
+resp, err = chat.Send(ctx, "And channels?") // carries the first question and answer
+history := chat.History()
+```
+
+A turn is kept only when the model answers, so a failed `Send` can simply be called again.
+`NewChat(history...)` resumes an earlier conversation.
+
+### Generation parameters and system instruction
+
+```go
+client, err := gogemini.New(
+	gogemini.WithSystemInstruction("Answer in one short sentence."),
+	gogemini.WithGenerationConfig(gogemini.GenerationConfig{
+		Temperature:     gogemini.Ptr(0.2),
+		MaxOutputTokens: 256,
+	}),
+)
+```
+
+These are defaults: a request's own `SystemInstruction` or `GenerationConfig` wins. `GenerationConfig`
+also has `TopP`, `TopK`, `CandidateCount`, `StopSequences`, `ResponseMIMEType` and `Seed`; use
+`gogemini.Ptr` where zero is a meaningful value.
+
+### Retries
+
+429, 408 and 5xx replies and network errors are retried with exponential backoff and jitter:
+4 attempts by default, waiting from 1 s up to 30 s. When Google sends a `RetryInfo` delay the client
+waits at least that long, and gives up if it is longer than `MaxDelay`. Change it with
+`WithRetry(gogemini.RetryPolicy{...})`; `RetryPolicy{MaxAttempts: 1}` turns retries off.
+
 ### Errors
 
 - From `New`: `ErrMissingAPIKey` (no key from `WithAPIKey` or `GEMINI_API_KEY`), `ErrInvalidBaseURL`,
-  `ErrInvalidTimeout`, `ErrEmptyModel`.
+  `ErrInvalidTimeout`, `ErrEmptyModel`, `ErrInvalidRetryPolicy`.
 - `ErrEmptyRequest` for an empty prompt, a `nil` request or no contents: nothing is sent.
 - `ErrRedirectOtherHost` when the server redirects to another host: the redirect is not followed.
-- `*gogemini.APIError` for any non-2xx reply, with the HTTP code, Google's status
-  (e.g. `RESOURCE_EXHAUSTED`) and message:
+- `*gogemini.APIError` for any non-2xx reply (after retries), with the HTTP code, Google's status
+  (e.g. `RESOURCE_EXHAUSTED`), the message, the `Reason` from `ErrorInfo` (e.g. `API_KEY_INVALID`)
+  and the `RetryDelay` Google asked for; `Retryable()` tells transient errors apart:
 
 ```go
 var apiErr *gogemini.APIError
@@ -108,7 +159,8 @@ grep -c '^GEMINI_API_KEY=.' .env
 set -a && source ./.env && set +a && go run ./examples/generate "Explain goroutines in one sentence"
 ```
 
-`-model` and `-timeout` flags are available; the model and token usage are printed on stderr.
+Flags: `-model`, `-timeout`, `-stream` (print the answer as it arrives) and `-system` (system
+instruction). The model and token usage are printed on stderr.
 
 ## Upgrading from v0.2.0
 
@@ -130,6 +182,7 @@ packages. `IS_DEBUG`, `_BARD_API_KEY` and `APP_ENV` are no longer read. Replace 
 gofmt -l .
 go vet ./...
 go test -race ./...
+golangci-lint run ./...   # v2.14.0, config in .golangci.yml
 ```
 
 The tests use `httptest` and never call Google; no environment variables are needed.

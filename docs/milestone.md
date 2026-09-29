@@ -86,15 +86,23 @@ restano quelli originali, perché sono stabili.
 > **Prova reale 2026-09-29**, eseguita a mano dall'utente con `examples/generate`: `pong` da `gemini-3.5-flash-lite`
 > (9 token) con `User-Agent` e regola sui redirect della v0.3.0. `gorelease` in CI: `DefaultModel` rimosso, suggerita v0.3.0.
 
-## v0.4.0 — Esperienza SDK
+## v0.4.0 — Esperienza SDK (codice completo, in attesa del tag)
 
 **Obiettivo:** coprire i casi d'uso comuni oltre la singola domanda: streaming, conversazioni, parametri, retry.
 
-- [ ] <!-- id:v030-streaming --> **Streaming**: `streamGenerateContent` (SSE) esposto come iteratore.
-- [ ] <!-- id:v030-chat --> **Chat multi-turno**: storico `contents` con ruoli `user`/`model`.
-- [ ] <!-- id:v030-generation-config --> **Parametri di generazione**: `temperature`, `maxOutputTokens`, system instruction.
-- [ ] <!-- id:v030-retry --> **Retry con backoff** su 429/5xx, configurabile; `APIError` espone i `details` di Google (`RetryInfo.retryDelay`, `ErrorInfo.reason`) — audit v0.2.0 A8.
-- [ ] <!-- id:v030-lint-deps --> **Lint e dipendenze**: `golangci-lint` in CI; tenere una sola tra Renovate e Dependabot.
+- [x] <!-- id:v030-streaming --> **Streaming**: `streamGenerateContent` (SSE) esposto come iteratore.
+- [x] <!-- id:v030-chat --> **Chat multi-turno**: storico `contents` con ruoli `user`/`model`.
+- [x] <!-- id:v030-generation-config --> **Parametri di generazione**: `temperature`, `maxOutputTokens`, system instruction.
+- [x] <!-- id:v030-retry --> **Retry con backoff** su 429/5xx, configurabile; `APIError` espone i `details` di Google (`RetryInfo.retryDelay`, `ErrorInfo.reason`) — audit v0.2.0 A8.
+- [x] <!-- id:v030-lint-deps --> **Lint e dipendenze**: `golangci-lint` in CI; tenere una sola tra Renovate e Dependabot.
+- [ ] <!-- id:v040-release --> **Rilascio v0.4.0**: prova reale a mano (`examples/generate` con e senza `-stream`), changelog
+      con data, `version` = `0.4.0`, tag `v0.4.0` — la release la crea il workflow.
+
+> **Avanzamento 2026-09-29**: `GenerateContentStream`/`GenerateStream` (`iter.Seq2`, SSE), `NewChat`/`Send`/`History`,
+> `GenerationConfig` + `SystemInstruction` con default del client, `WithRetry`/`RetryPolicy` (default 4 tentativi,
+> backoff con jitter, `RetryInfo` rispettato), `APIError.Reason`/`RetryDelay`/`Retryable()`. Tutto additivo (nessun
+> cambiamento incompatibile); cambia il comportamento di default: ora i 429/5xx vengono ritentati. `golangci-lint` in
+> CI, solo Renovate. 14 mutazioni del codice nuovo, tutte intercettate dai test (il mutex della chat con `-race`).
 
 ## v1.0.0 — API stabile (preparazione completa, 2026-09-29)
 

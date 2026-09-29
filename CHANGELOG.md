@@ -6,6 +6,31 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Streaming: `Client.GenerateContentStream` and `Client.GenerateStream` return an
+  `iter.Seq2[*Response, error]` over `:streamGenerateContent?alt=sse`. Breaking out of the loop closes
+  the connection; failures before the first chunk are retried, an error event ends the stream.
+- Chat: `Client.NewChat(history...)`, `Chat.Send`, `Chat.History`. A turn is kept only when the model
+  answers; safe for concurrent use, turns are sent one at a time.
+- Generation parameters: `GenerationConfig` (`Temperature`, `TopP`, `TopK`, `MaxOutputTokens`,
+  `CandidateCount`, `StopSequences`, `ResponseMIMEType`, `Seed`) and `SystemInstruction` on
+  `GenerateContentRequest`; `WithGenerationConfig` and `WithSystemInstruction` set client defaults;
+  `Ptr` for optional values.
+- Retries: `WithRetry(RetryPolicy)`, `DefaultRetryPolicy`, `ErrInvalidRetryPolicy`. 408, 429, 5xx and
+  network errors are retried with exponential backoff and jitter, honouring Google's `RetryInfo`.
+- `APIError.Reason` (from `ErrorInfo`), `APIError.RetryDelay` (from `RetryInfo`) and `APIError.Retryable()`.
+- `UsageMetadata.CachedContentTokenCount` and `ThoughtsTokenCount`.
+- `examples/generate`: `-stream` and `-system` flags.
+- CI: `golangci-lint` v2.14.0 (config in `.golangci.yml`).
+
+### Changed
+- **Behaviour:** transient failures are now retried by default (4 attempts, 1 s to 30 s). Use
+  `WithRetry(gogemini.RetryPolicy{MaxAttempts: 1})` for the previous single-attempt behaviour.
+- `ErrInvalidBaseURL` now wraps the parse error, so `errors.As` can reach it.
+
+### Removed
+- Dependabot configuration: Renovate alone keeps modules and actions up to date (`config:recommended`).
+
 ## [v0.3.0] — 2026-09-29
 
 Hardening from the [v0.2.0 audit](docs/audit-v0.2.0-2026-09-29.md), and the groundwork to freeze the
