@@ -28,19 +28,26 @@ import (
 	"time"
 )
 
+// These values change between releases, so they are not exported: an exported
+// constant whose value changes is an incompatible API change. Use Client.Model
+// to read the model a client uses.
 const (
-	// Version is the SDK version, sent in the User-Agent header.
-	Version = "0.2.1"
+	// version is the SDK version, sent in the User-Agent header.
+	version = "0.3.0"
+	// defaultModel is used when WithModel is not given. It follows Google's
+	// recommended model and may change in a minor release.
+	defaultModel = "gemini-3.8-flash"
+)
+
+const (
 	// DefaultBaseURL is the Gemini API host.
 	DefaultBaseURL = "https://generativelanguage.googleapis.com"
-	// DefaultModel is used when WithModel is not given.
-	DefaultModel = "gemini-3.8-flash"
 	// DefaultTimeout bounds each request when WithHTTPClient and WithTimeout are not given.
 	DefaultTimeout = 60 * time.Second
 	// APIKeyEnv is the environment variable read when WithAPIKey is not given.
 	APIKeyEnv = "GEMINI_API_KEY"
 
-	userAgent    = "go-gemini/" + Version
+	userAgent    = "go-gemini/" + version
 	maxRedirects = 10
 )
 
@@ -78,6 +85,8 @@ type Option func(*Client)
 func WithAPIKey(key string) Option { return func(c *Client) { c.apiKey = key } }
 
 // WithModel sets the model, for example "gemini-3.8-flash". A "models/" prefix is accepted.
+// Without it the client uses Google's currently recommended model (see Client.Model),
+// which may change in a minor release; pin a model if your output must not change.
 func WithModel(model string) Option {
 	return func(c *Client) { c.model = strings.TrimPrefix(strings.TrimSpace(model), "models/") }
 }
@@ -98,7 +107,7 @@ func WithTimeout(d time.Duration) Option { return func(c *Client) { c.timeout = 
 // New returns a Client. It fails with ErrMissingAPIKey when no key is available, and with
 // ErrInvalidBaseURL, ErrInvalidTimeout or ErrEmptyModel for invalid options.
 func New(opts ...Option) (*Client, error) {
-	c := &Client{baseURL: DefaultBaseURL, model: DefaultModel, timeout: DefaultTimeout}
+	c := &Client{baseURL: DefaultBaseURL, model: defaultModel, timeout: DefaultTimeout}
 	for _, opt := range opts {
 		opt(c)
 	}

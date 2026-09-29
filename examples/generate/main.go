@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	model := flag.String("model", gogemini.DefaultModel, "model name")
+	model := flag.String("model", "", "model name (default: the SDK's recommended model)")
 	timeout := flag.Duration("timeout", 60*time.Second, "request timeout")
 	flag.Parse()
 
@@ -28,7 +28,11 @@ func main() {
 		os.Exit(2)
 	}
 
-	client, err := gogemini.New(gogemini.WithModel(*model), gogemini.WithTimeout(*timeout))
+	opts := []gogemini.Option{gogemini.WithTimeout(*timeout)}
+	if *model != "" {
+		opts = append(opts, gogemini.WithModel(*model))
+	}
+	client, err := gogemini.New(opts...)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

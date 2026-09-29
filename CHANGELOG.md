@@ -4,9 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/) (pre-1.0: minor versions may break the API).
 
-## [Unreleased] — v0.2.1
+## [Unreleased]
 
-Hardening from the [v0.2.0 audit](docs/audit-v0.2.0-2026-09-29.md).
+## [v0.3.0] — 2026-09-29
+
+Hardening from the [v0.2.0 audit](docs/audit-v0.2.0-2026-09-29.md), and the groundwork to freeze the
+API for v1.0.0.
 
 ### Security
 - The API key is no longer sent to another host on a redirect. `net/http` copies custom headers,
@@ -18,15 +21,23 @@ Hardening from the [v0.2.0 audit](docs/audit-v0.2.0-2026-09-29.md).
 ### Added
 - `ErrInvalidBaseURL`, `ErrInvalidTimeout`, `ErrEmptyModel` from `New`; `ErrEmptyRequest` for an empty
   prompt, a `nil` request or no contents, returned without sending anything.
-- `User-Agent: go-gemini/<version>` on every request, and the `Version` constant.
+- `User-Agent: go-gemini/<version>` on every request.
+- Runnable examples for `Client.Generate`, `APIError` and `WithHTTPClient`.
+- `CONTRIBUTING.md` and `SECURITY.md` (private vulnerability reporting).
+- *Release* workflow: pushing a `vX.Y.Z` tag checks the changelog section and the SDK version, runs
+  the tests and creates the GitHub release from the changelog.
 
 ### Changed
 - `WithTimeout` with a duration `<= 0` now makes `New` fail, instead of silently removing the timeout.
 - `APIError.Message` is truncated to about 1 KiB; successful replies are read up to 32 MiB and drained,
   so connections are reused.
-- CI runs `staticcheck`; `staticcheck` and `govulncheck` versions are pinned.
+- CI runs `staticcheck`; `staticcheck` and `govulncheck` versions are pinned. CI fails if coverage of
+  `gogemini` drops below 90%, and runs `gorelease` against the latest tag (blocking from v1.0.0).
 
 ### Removed
+- **Breaking:** the exported `DefaultModel` constant. The default model follows Google's recommendation
+  and has to change over time, and changing an exported constant is an incompatible API change. Read
+  the model with `Client.Model()`, or pin one with `WithModel`.
 - `Dockerfile` (it could not build a library) and `.vscode/`. The Bard-era backlog moved to `docs/archive/`.
 
 ## [v0.2.0] — 2026-09-29
@@ -59,6 +70,7 @@ First working client, on the official Gemini API.
 
 - Skeleton of a Google Bard client (session cookie and `SNlM0e` token). Never sent a request.
 
-[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.2.0...main
+[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.3.0...main
+[v0.3.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/Allan-Nava/go-gemini/releases/tag/v0.1.0

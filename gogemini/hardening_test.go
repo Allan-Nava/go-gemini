@@ -176,8 +176,8 @@ func TestUserAgent(t *testing.T) {
 	if _, err := c.GenerateContent(context.Background(), "hi"); err != nil {
 		t.Fatal(err)
 	}
-	if want := "go-gemini/" + gogemini.Version; ua != want {
-		t.Errorf("User-Agent = %q, want %q", ua, want)
+	if !strings.HasPrefix(ua, "go-gemini/") || len(ua) <= len("go-gemini/") {
+		t.Errorf("User-Agent = %q, want go-gemini/<version>", ua)
 	}
 }
 

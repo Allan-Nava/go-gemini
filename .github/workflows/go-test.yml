@@ -36,6 +36,13 @@ jobs:
       - name: Test with the Go CLI
         run: go test -v -race ./...
       #
+      # Public API must stay covered: fail below 90% on the gogemini package.
+      - name: Coverage gate
+        run: |
+          pct=$(go test -count=1 -cover ./gogemini/ | sed -n 's/.*coverage: \([0-9.]*\)%.*/\1/p')
+          echo "gogemini coverage: ${pct}%"
+          awk -v p="$pct" 'BEGIN { exit (p >= 90) ? 0 : 1 }' || { echo "::error::gogemini coverage ${pct}% is below 90%"; exit 1; }
+      #
       # Tool versions are pinned; bump them on purpose.
       - name: staticcheck
         run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
@@ -46,3 +53,26 @@ jobs:
     #
   #
 #
+
+  # From v1.0.0 on, an incompatible change to the exported API fails the build.
+  # Before v1.0.0 it is only reported, since minor versions may still break.
+  api-compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - name: gorelease against the latest tag
+        run: |
+          base=$(git describe --tags --abbrev=0 --match 'v*.*.*' 2>/dev/null || true)
+          if [ -z "$base" ]; then echo "no release tag yet"; exit 0; fi
+          go run golang.org/x/exp/cmd/gorelease@v0.0.0-20260908205506-85c1c2202aba -base="$base" | tee gorelease.txt
+          if grep -q '^## incompatible changes' gorelease.txt; then
+            case "$base" in
+              v0.*) echo "::warning::incompatible API changes since $base (allowed before v1.0.0)";;
+              *)    echo "::error::incompatible API changes since $base"; exit 1;;
+            esac
+          fi

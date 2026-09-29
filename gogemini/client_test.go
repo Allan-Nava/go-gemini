@@ -180,7 +180,7 @@ func TestDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.Model() != gogemini.DefaultModel {
+	if c.Model() != "gemini-3.8-flash" {
 		t.Errorf("Model() = %q", c.Model())
 	}
 	var nilResp *gogemini.Response

@@ -50,7 +50,7 @@ Options for `gogemini.New`:
 | Option | Default | Meaning |
 |---|---|---|
 | `WithAPIKey(key)` | `$GEMINI_API_KEY` | API key; wins over the environment |
-| `WithModel(name)` | `gemini-3.8-flash` | model; a `models/` prefix is accepted |
+| `WithModel(name)` | `gemini-3.8-flash`, may change in a minor release | model; a `models/` prefix is accepted; read it with `Client.Model()` |
 | `WithTimeout(d)` | 60 s | timeout of the default HTTP client; must be positive |
 | `WithHTTPClient(c)` | — | your own `*http.Client` (transport, TLS, timeouts) |
 | `WithBaseURL(u)` | `https://generativelanguage.googleapis.com` | proxy or test server; HTTPS only, plain HTTP allowed for loopback |
@@ -108,7 +108,7 @@ grep -c '^GEMINI_API_KEY=.' .env
 set -a && source ./.env && set +a && go run ./examples/generate "Explain goroutines in one sentence"
 ```
 
-`-model` and `-timeout` flags are available; token usage is printed on stderr.
+`-model` and `-timeout` flags are available; the model and token usage are printed on stderr.
 
 ## Upgrading from v0.1.0
 
@@ -131,6 +131,18 @@ The tests use `httptest` and never call Google; no environment variables are nee
 Milestones and their issues on GitHub are generated from [docs/milestone.md](docs/milestone.md) by the
 *Milestone sync* workflow: edit the file, not the issues. Preview locally with
 `python3 .github/scripts/milestone_sync.py --dry-run`.
+
+## Stability
+
+The API follows [Semantic Versioning](https://semver.org/). Before v1.0.0, a minor release may still
+break it; from v1.0.0 on, CI rejects incompatible changes to the exported API (`gorelease`). The
+default model follows Google's recommendation and may change in a minor release: pin one with
+`WithModel` if your output must not change.
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately, as described in
+[SECURITY.md](SECURITY.md).
 
 ## License
 MIT. See [LICENSE](LICENSE). Not affiliated with Google.

@@ -2,7 +2,7 @@
 
 Secondo audit, sul tag `v0.2.0` (`f2957e1`), dopo la riscrittura sull'API ufficiale Gemini.
 Il primo audit (stato pre-rilascio, client Bard) è [`audit-2026-09-29.md`](audit-2026-09-29.md).
-Le correzioni sono pianificate nella milestone **v0.2.1** di [`milestone.md`](milestone.md).
+Le correzioni sono nella milestone **v0.3.0** di [`milestone.md`](milestone.md) (pianificata come v0.2.1).
 
 ## Sintesi
 
@@ -88,7 +88,7 @@ drain del resto prima di `Close`.
 Le richieste escono come `Go-http-client/1.1`: impossibile distinguerle lato quota o supporto.
 Fix: `User-Agent: go-gemini/<versione>`.
 
-### A8. [INFO → v0.3.0] `APIError` non espone i dettagli di Google
+### A8. [INFO → v0.4.0] `APIError` non espone i dettagli di Google
 
 Le risposte `429`/`503` contengono `details` (`RetryInfo.retryDelay`, `ErrorInfo.reason`) che servono al
 retry con backoff. Rientra in `v030-retry`.

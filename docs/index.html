@@ -379,7 +379,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
         </div>
         <div class="card reveal">
           <span class="pill next">Next</span>
-          <h3>v0.3.0</h3>
+          <h3>v0.4.0</h3>
           <ul>
             <li>Streaming and multi-turn chat</li>
             <li>Generation parameters</li>
@@ -440,7 +440,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
           <thead><tr><th>Symbol</th><th>Kind</th><th>What it does</th></tr></thead>
           <tbody>
             <tr><td class="m">New(opts...)</td><td><span class="cmd">func</span></td><td class="d">Builds a client. Returns <code>ErrMissingAPIKey</code> when neither <code>WithAPIKey</code> nor <code>GEMINI_API_KEY</code> gives a key.</td></tr>
-            <tr><td class="m">WithAPIKey · WithModel</td><td><span class="cmd">option</span></td><td class="d">Key and model. The default model is <code>gemini-3.8-flash</code>; a <code>models/</code> prefix is accepted.</td></tr>
+            <tr><td class="m">WithAPIKey · WithModel</td><td><span class="cmd">option</span></td><td class="d">Key and model. The default is <code>gemini-3.8-flash</code> and may change in a minor release; <code>Client.Model()</code> tells which one is used.</td></tr>
             <tr><td class="m">WithHTTPClient · WithTimeout</td><td><span class="cmd">option</span></td><td class="d">Bring your own <code>*http.Client</code>, or change the 60 s timeout of the default one (must be positive).</td></tr>
             <tr><td class="m">WithBaseURL</td><td><span class="cmd">option</span></td><td class="d">Another host: a proxy, or an <code>httptest</code> server in your tests. HTTPS only; plain HTTP for loopback.</td></tr>
             <tr><td class="m">GenerateContent(ctx, prompt)</td><td><span class="cmd">method</span></td><td class="d">Sends one user prompt to <code>:generateContent</code> and returns the <code>*Response</code>.</td></tr>
@@ -504,9 +504,9 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
       <div class="steps">
         <ol class="step-list">
           <li><b>v0.2.0 &middot; first working client</b><span>Released 2026-09-29.</span></li>
-          <li><b>v0.2.1 &middot; hardening</b><span>The key never leaves the API host; invalid options fail early.</span></li>
-          <li><b>v0.3.0 &middot; SDK experience</b><span>Streaming, chat, generation parameters, retries, lint.</span></li>
-          <li><b>v1.0.0 &middot; stable API</b><span>Frozen surface, contributing guide, automated releases.</span></li>
+          <li><b>v0.3.0 &middot; hardening</b><span>The key never leaves the API host; invalid options fail early; API ready to freeze.</span></li>
+          <li><b>v0.4.0 &middot; SDK experience</b><span>Streaming, chat, generation parameters, retries, lint.</span></li>
+          <li><b>v1.0.0 &middot; stable API</b><span>Groundwork done: API reviewed, compatibility check in CI, releases from the changelog.</span></li>
         </ol>
         <div class="window reveal">
           <div class="window-bar"><i></i><i></i><i></i><span>errors.go</span></div>
