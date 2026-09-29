@@ -321,7 +321,7 @@ td .cmd.stub { color: var(--warn); background: color-mix(in srgb, var(--warn) 13
       <div>
         <span class="eyebrow"><span class="dot"></span>Experimental &middot; MIT</span>
         <h1>Talk to <span class="grad">Gemini</span><br>from Go.</h1>
-        <p class="lede">A small Go client for Google Gemini. It started as a Bard client; Bard is gone, so the request path is being rebuilt on the official Gemini API. The package builds today, but it does not send prompts yet.</p>
+        <p class="lede">A small Go client for Google Gemini. It started as a Bard client; the request path is being rebuilt on the official Gemini API. The package builds today, but it does not send prompts yet.</p>
         <div class="cta">
           <a class="btn primary" href="#status">See what works
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -394,7 +394,7 @@ client := gogemini.<span class="f">NewGoGemini</span>(cfg)
       <p class="section-lede">Enough to compile against the package and follow along. It will not reach Google until the rewrite lands.</p>
       <div class="steps">
         <ol class="step-list">
-          <li><b>Install</b><span><code>go get</code> the module. Go 1.21 or newer, for now.</span></li>
+          <li><b>Install</b><span><code>go get</code> the module. Go 1.26 or newer.</span></li>
           <li><b>Configure</b><span><code>GetConfiguration()</code> reads <code>IS_DEBUG</code> from the environment.</span></li>
           <li><b>Build the client</b><span><code>NewGoGemini(cfg)</code> returns an <code>IGoGemini</code>.</span></li>
           <li><b>Run the checks</b><span>The same commands CI runs.</span></li>
@@ -437,7 +437,7 @@ APP_ENV=runner go test ./...   <span class="c"># loads env/.env.runner</span></c
       <div>
         <p class="kicker">Auth</p>
         <h2>From a browser cookie to an API key</h2>
-        <p class="section-lede" style="margin-bottom:0">The original design copied the <code>__Secure-1PSID</code> session cookie out of the browser and scraped a page token before each call. That cookie opens the whole Google account, the endpoints were never documented, and they no longer exist.</p>
+        <p class="section-lede" style="margin-bottom:0">The original design copied the <code>__Secure-1PSID</code> session cookie out of the browser and scraped a page token before each call. That cookie opens the whole Google account, and the endpoint, which still answers, was never documented or meant for automated use.</p>
         <p class="section-lede" style="margin:16px 0 0">The plan is to send an API key from <a href="https://aistudio.google.com/apikey">Google AI Studio</a> in the <code>x-goog-api-key</code> header to the versioned <code>generateContent</code> endpoint. One request per prompt, no scraping.</p>
         <p class="note">Never commit a key or a cookie, and never paste output from debug mode into an issue: resty logs request headers.</p>
       </div>

@@ -1,5 +1,12 @@
 name: Go test workflow
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+#
+permissions:
+  contents: read
 #
 env:
   APP_ENV: runner
@@ -9,28 +16,31 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [ '1.21.x', '1.22.x', '1.23.x' ]
+        # the go.mod floor, plus whatever is current
+        go-version: [ '1.26.x', 'stable' ]
     #
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - name: Setup Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
       #
-      # You can test your matrix by printing the current Go version
       - name: Display Go version
         run: go version
       #
-      - name: Install dependencies
-        run: go mod tidy
+      - name: Verify go.mod is tidy
+        run: go mod tidy -diff
       #
-      - name: Build
-        run: go build -v ./... 
+      - name: Vet
+        run: go vet ./...
       #
       - name: Test with the Go CLI
-        run: go test -v ./...
+        run: go test -v -race ./...
+      #
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
       #
     #
   #

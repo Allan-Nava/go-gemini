@@ -1,0 +1,46 @@
+# Keeps GitHub milestones and `milestone-sync` issues aligned with docs/milestone.md.
+# Pull requests only validate the file; pushes to main apply it.
+name: Milestone sync
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "docs/milestone.md", ".github/scripts/milestone_sync.py", ".github/workflows/milestone-sync.yml" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "docs/milestone.md", ".github/scripts/milestone_sync.py", ".github/workflows/milestone-sync.yml" ]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the plan without changing anything"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: milestone-sync
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate docs/milestone.md
+        run: python3 .github/scripts/milestone_sync.py --check
+
+  sync:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Sync milestones and issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/milestone_sync.py ${{ inputs.dry_run && '--dry-run' || '' }}

@@ -1,53 +1,77 @@
----
-layout: default
-title: Milestone
-nav_order: 2
-description: Roadmap e milestone per migliorare l'SDK go-gemini
-last_modified_date: 2026-07-23T12:00:00+0000
----
-
 # Milestone
 
-Questa pagina definisce le milestone principali per migliorare l'SDK `go-gemini` e portarlo a uno stato più stabile, testato e documentato.
+Roadmap di `go-gemini`, dalla più vicina. Contesto e priorità: [`audit-2026-09-29.md`](audit-2026-09-29.md);
+attività di dettaglio: [`backlog.md`](backlog.md).
 
-## Obiettivi principali
+> **Questo file è la fonte di verità** per le [milestone](https://github.com/Allan-Nava/go-gemini/milestones) e le
+> issue con label `milestone-sync`: il workflow *Milestone sync* le riallinea a ogni push su `main`.
+> Ogni `## vX.Y.Z — Titolo` è una milestone, ogni `- [ ] <!-- id:… -->` una issue (`[x]` = chiusa;
+> item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
-1. Stabilizzare l'integrazione con Google Bard
-2. Migliorare la copertura di test e la qualità del codice
-3. Documentare l'uso e l'autenticazione in modo chiaro e sicuro
-4. Preparare il progetto per contributi esterni
+```
+  v0.1.0 (tag)          v0.1.x (fatto)            v0.2.0 (nuova)                v0.3.0            v1.0.0
+  scheletro Bard ──►  audit, sito, dipendenze ──► primo client funzionante ──► esperienza SDK ──► API stabile
+                      Go 1.26, 0 vuln             API ufficiale + test          streaming, chat
+```
 
-## Milestone 1 — Stabilità di base
+## v0.2.0 — Primo client funzionante (nuova, 2026-09-29)
 
-- Implementare correttamente `GetAnswer()` in `gogemini`.
-- Completare l'estrazione del token SNlM0e e la logica di chiamata alle API.
-- Gestione degli errori HTTP e parsing della risposta.
-- Aggiungere test unitari per il client REST e la configurazione.
-- Migliorare `README.md` con un esempio di utilizzo funzionante.
+**Obiettivo:** `go get` + una API key → una risposta di Gemini in cinque righe di codice, con test che
+non toccano la rete.
 
-## Milestone 2 — Configurazione e sicurezza
+**Direzione:** API ufficiale Gemini (`generativelanguage.googleapis.com`, header `x-goog-api-key`), opzione
+A dell'audit §1. L'endpoint web `StreamGenerate` risponde ancora (audit §0) ma resta fuori da questa
+milestone: non è documentato e non è pensato per uso automatizzato.
 
-- Migliorare `configuration.Configuration` per supportare `BARD_API_KEY`, URL personalizzato e variabili di ambiente chiare.
-- Ridurre le dipendenze da cookie copiati manualmente, documentando il metodo raccomandato di autenticazione.
-- Assicurarsi che non vengano pubblicati segreti nel repository.
-- Aggiungere una sezione `CONTRIBUTING.md` se non esiste.
+### Scope
 
-## Milestone 3 — Qualità del codice e CI
+- [ ] <!-- id:v020-options --> **Configurazione a opzioni funzionali**: `gogemini.New(opts...) (*Client, error)` con `WithAPIKey`,
+      `WithModel`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`; default di timeout sensato.
+- [ ] <!-- id:v020-no-panic --> **Niente panic nella libreria**: via `panic` da `configuration`, `log.Fatal` da `env`, `log.Println` da
+      `gogemini`; errori esportati (`ErrMissingAPIKey`, `*APIError` con status e messaggio di Google).
+- [ ] <!-- id:v020-generate-content --> **`GenerateContent(ctx, prompt string) (*Response, error)`** su `POST /v1beta/models/{model}:generateContent`,
+      con tipi di request/response minimi (`contents`, `candidates[].content.parts[].text`) e helper `Response.Text()`.
+- [ ] <!-- id:v020-api-key-env --> **Chiave da ambiente**: `GEMINI_API_KEY` letta solo se il chiamante non passa `WithAPIKey`; `_BARD_API_KEY` rimossa.
+- [ ] <!-- id:v020-offline-tests --> **Test senza rete**: `httptest.Server` per successo, 400/403/429, body malformato, context cancellato;
+      `Example` per `New` e `GenerateContent`. `go test ./...` verde **senza** `APP_ENV`.
+- [ ] <!-- id:v020-legacy-cleanup --> **Pulizia legacy**: rimuovere `getSnim0e`, `RequestGetAnswer`, costanti `bard.google.com`, header
+      browser (`Host`, `Origin`, UA Chrome 91), package `env` e file `env/.env.*`; `.gitignore` con `.env*`.
+- [ ] <!-- id:v020-docs --> **Docs allineate**: README (uso, auth, variabili), `docs/index.html` (hero, Quickstart, tabella API,
+      diagramma auth senza "planned"), CLAUDE.md, backlog.
 
-- Aggiungere supporto a `go test ./...`, `go vet ./...` e `gofmt -w .` nelle verifiche locali.
-- Configurare CI in GitHub Actions per build e test automatici.
-- Valutare l'introduzione di linters (`golangci-lint`) se utile.
-- Documentare i comandi di sviluppo nel `README.md`.
+### Fuori scope
 
-## Milestone 4 — Esperienza SDK
+Streaming, chat multi-turno, immagini/file, tool calling, Vertex AI, endpoint web anonimo.
 
-- Introdurre metodi aggiuntivi per altre operazioni Bard, se rilevante.
-- Gestire i casi d'uso di timeout e retry con politiche configurabili.
-- Migliorare l'interfaccia `IGoGemini` con commenti e metodi espliciti.
-- Aggiungere esempi nel repository e nel sito di documentazione.
+### Criteri di chiusura
 
-## Priorità
+1. `gofmt -l .` vuoto, `go vet ./...`, `go test -race ./...` (senza variabili d'ambiente) e `govulncheck` verdi, in locale e in CI.
+2. Una chiamata reale con una chiave di test, eseguita **a mano** dall'utente, restituisce testo.
+3. Nessuna chiave, cookie o risposta reale nei file tracciati (`git grep` + `git log -p`).
+4. Tag `v0.2.0` con note di rilascio che segnalano il **breaking change** (`NewGoGemini`/`GetAnswer` rimossi).
 
-- Priorità alta: funzionalità core di request/response, test di base, documentazione di autenticazione.
-- Priorità media: configurazione avanzata, CI, gestione errori migliorata.
-- Priorità bassa: supporto a nuove API Bard, refactoring dell'architettura.
+## v0.3.0 — Esperienza SDK
+
+**Obiettivo:** coprire i casi d'uso comuni oltre la singola domanda: streaming, conversazioni, parametri, retry.
+
+- [ ] <!-- id:v030-streaming --> **Streaming**: `streamGenerateContent` (SSE) esposto come iteratore.
+- [ ] <!-- id:v030-chat --> **Chat multi-turno**: storico `contents` con ruoli `user`/`model`.
+- [ ] <!-- id:v030-generation-config --> **Parametri di generazione**: `temperature`, `maxOutputTokens`, system instruction.
+- [ ] <!-- id:v030-retry --> **Retry con backoff** su 429/5xx, configurabile.
+- [ ] <!-- id:v030-lint-deps --> **Lint e dipendenze**: `golangci-lint` in CI; tenere una sola tra Renovate e Dependabot.
+
+## v1.0.0 — API stabile
+
+**Obiettivo:** una superficie pubblica su cui gli utenti possano contare senza breaking change.
+
+- [ ] <!-- id:v100-api-freeze --> **API congelata**: superficie pubblica documentata su pkg.go.dev.
+- [ ] <!-- id:v100-contributing --> **Contributi e rilasci**: `CONTRIBUTING.md`, changelog, release automatiche da tag.
+- [ ] <!-- id:v100-coverage --> **Copertura di test** sulle funzioni pubbliche.
+
+## Storico
+
+- **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v0.1.x** (2026-09-29) — audit, `CLAUDE.md`, sito GitHub Pages statico, resty v2.17.2 / `x/net` v0.59.0,
+  floor Go 1.26, CI con vet/race/govulncheck.
+- Le milestone precedenti (stabilizzare l'integrazione Bard, estrarre `SNlM0e`) sono **superate** dalla
+  scelta dell'API ufficiale.

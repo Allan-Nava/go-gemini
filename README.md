@@ -3,9 +3,9 @@
 [![Go test workflow](https://github.com/Allan-Nava/go-gemini/actions/workflows/go-test.yml/badge.svg)](https://github.com/Allan-Nava/go-gemini/actions/workflows/go-test.yml)
 
 A small Go client for Google Gemini. **Experimental**: the package builds, but it does not send
-prompts yet. It started as a client for the Bard web interface; Bard has since become Gemini and
-those endpoints are gone, so the request path is being rebuilt on the
-[official Gemini API](https://ai.google.dev/api).
+prompts yet. It started as a client for the Bard web interface. Bard has since become Gemini; the
+old web endpoint still answers, but it is undocumented and not meant for automated use, so the
+request path is being rebuilt on the [official Gemini API](https://ai.google.dev/api).
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
 [docs/audit-2026-09-29.md](docs/audit-2026-09-29.md) · [Backlog](docs/backlog.md) ·
@@ -22,9 +22,9 @@ err := client.GetAnswer() // stub: returns nil, sends no request
 
 ### Authentication
 
-The original design used the `__Secure-1PSID` session cookie copied from the browser. That is no
-longer supported: the endpoints it relied on have been removed, and a session cookie grants access
-to the whole Google account. The planned replacement is an API key from
+The original design used the `__Secure-1PSID` session cookie copied from the browser. That is not
+supported: the web endpoint is undocumented and outside Google's terms for automated use, and a
+session cookie grants access to the whole Google account. The planned replacement is an API key from
 [Google AI Studio](https://aistudio.google.com/apikey), read from `GEMINI_API_KEY`.
 
 Never commit a key or a cookie. With `IS_DEBUG=true` resty logs request headers, so do not paste
@@ -45,6 +45,10 @@ gofmt -l .
 go vet ./...
 APP_ENV=runner go test ./...
 ```
+
+Milestones and their issues on GitHub are generated from [docs/milestone.md](docs/milestone.md) by the
+*Milestone sync* workflow: edit the file, not the issues. Preview locally with
+`python3 .github/scripts/milestone_sync.py --dry-run`.
 
 `go test ./...` without `APP_ENV` currently fails, because the tests default to `APP_ENV=test` and
 `env/.env.test` does not exist (see the audit).
