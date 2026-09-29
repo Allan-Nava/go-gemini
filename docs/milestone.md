@@ -9,7 +9,7 @@ audit: [`audit-v0.2.0-2026-09-29.md`](audit-v0.2.0-2026-09-29.md).
 > item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
 ```
-  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (rilasciata)     v0.4.0 (rilasciata) v1.0.0
+  v0.1.0 (tag)       v0.2.0 (rilasciata)          v0.3.0 (rilasciata)     v0.4.0 (rilasciata) v1.0.0 (rilasciata)
   scheletro Bard ──► primo client funzionante ──► hardening + pulizia ──► esperienza SDK ──► API stabile
                      API ufficiale, 0 dipendenze   audit v0.2.0, prep 1.0   streaming, chat    API congelata
 ```
@@ -108,20 +108,23 @@ restano quelli originali, perché sono stabili.
 > cambiamento incompatibile); cambia il comportamento di default: ora i 429/5xx vengono ritentati. `golangci-lint` in
 > CI, solo Renovate. 14 mutazioni del codice nuovo, tutte intercettate dai test (il mutex della chat con `-race`).
 
-## v1.0.0 — API stabile (revisione finale fatta, in attesa della prova reale e del tag)
+## v1.0.0 — API stabile (rilasciata, 2026-09-29)
 
 **Obiettivo:** una superficie pubblica su cui gli utenti possano contare senza breaking change.
 
 - [x] <!-- id:v100-api-freeze --> **API congelata**: superficie pubblica documentata su pkg.go.dev.
 - [x] <!-- id:v100-contributing --> **Contributi e rilasci**: `CONTRIBUTING.md`, changelog, release automatiche da tag.
 - [x] <!-- id:v100-coverage --> **Copertura di test** sulle funzioni pubbliche.
-- [ ] <!-- id:v100-release --> **Rilascio v1.0.0**: tag `v1.0.0` dopo la v0.4.0, quando streaming, chat e retry hanno confermato il design; da lì `gorelease` in CI blocca
+- [x] <!-- id:v100-release --> **Rilascio v1.0.0**: tag `v1.0.0` dopo la v0.4.0, quando streaming, chat e retry hanno confermato il design; da lì `gorelease` in CI blocca
       ogni cambiamento incompatibile dell'API esportata.
 
 > **Revisione finale 2026-09-29** ([`api-review-v1.0.0-2026-09-29.md`](api-review-v1.0.0-2026-09-29.md)): trovato e corretto
 > il taglio degli stream lunghi (`http.Client.Timeout` comprende la lettura del body); timeout ora per tentativo via context,
 > default 5 minuti, `DefaultTimeout` non più esportata. Modello di default confermato `gemini-3.8-flash`. Resta: prova reale
 > (normale e `-stream`), poi `version` = `1.0.0`, changelog con data, tag.
+>
+> **Prova reale 2026-09-29**, eseguita a mano dall'utente su `gemini-3.5-flash-lite`: `pong` (9 token) e uno stream di
+> dieci righe (120 token) arrivato intero con il nuovo timeout per tentativo. Tag `v1.0.0`.
 
 > **Avanzamento 2026-09-29**: preparazione completa. API rivista (21 simboli, tutti documentati, esempi per
 > `New`, `GenerateContent`, `Generate`, `APIError`, `WithHTTPClient`); costanti che cambiano valore
@@ -131,6 +134,7 @@ restano quelli originali, perché sono stabili.
 ## Storico
 
 - **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v1.0.0** (2026-09-29) — prima versione stabile: API congelata, timeout per tentativo (gli stream lunghi non vengono più tagliati). Vedi `CHANGELOG.md` e `api-review-v1.0.0-2026-09-29.md`.
 - **v0.4.0** (2026-09-29) — streaming, chat, parametri di generazione, retry con backoff, `golangci-lint`. Vedi `CHANGELOG.md`.
 - **v0.3.0** (2026-09-29) — hardening dall'audit v0.2.0 (la chiave resta sull'host dell'API), preparazione della v1.0.0. Vedi `CHANGELOG.md`.
 - **v0.2.0** (2026-09-29) — client per l'API ufficiale, modulo senza dipendenze, package Bard rimossi. Vedi `CHANGELOG.md`.

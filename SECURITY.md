@@ -2,8 +2,8 @@
 
 ## Supported versions
 
-Only the latest release gets security fixes. Before v1.0.0, fixes ship in the next minor or patch
-release; upgrade to it.
+Only the latest 1.x release gets security fixes; they ship as a patch or minor release. Upgrading within
+1.x never breaks your code.
 
 ## Reporting a vulnerability
 

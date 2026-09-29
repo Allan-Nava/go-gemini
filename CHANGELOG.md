@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [v1.0.0] — 2026-09-29
+
+The first stable release: the exported API is frozen, and from here CI rejects incompatible changes
+(`gorelease` against the latest tag). Compared with v0.4.0 it fixes long streams being cut and makes
+the timeout per attempt. See `docs/api-review-v1.0.0-2026-09-29.md` for what was reviewed.
+
 ### Fixed
 - **Long streams are no longer cut.** The default client set `http.Client.Timeout` (60 s), which also
   covers reading the body, so a stream longer than that stopped halfway. Each attempt is now bounded
@@ -113,7 +119,8 @@ First working client, on the official Gemini API.
 
 - Skeleton of a Google Bard client (session cookie and `SNlM0e` token). Never sent a request.
 
-[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v0.4.0...main
+[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v1.0.0...main
+[v1.0.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.4.0...v1.0.0
 [v0.4.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.1.0...v0.2.0

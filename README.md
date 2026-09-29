@@ -4,8 +4,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/Allan-Nava/go-gemini/gogemini.svg)](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini)
 
 A small Go client for the [official Gemini API](https://ai.google.dev/api). Standard library only:
-the module has no dependencies. Latest release: **v0.4.0** ([changelog](CHANGELOG.md));
-pre-1.0, so minor versions may still change the API.
+the module has no dependencies. Latest release: **v1.0.0** ([changelog](CHANGELOG.md)), the first
+stable one: the API is frozen and 1.x releases only add to it.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
 [latest audit](docs/audit-v0.2.0-2026-09-29.md) · [Milestones](docs/milestone.md) ·
@@ -207,8 +207,8 @@ Milestones and their issues on GitHub are generated from [docs/milestone.md](doc
 
 ## Stability
 
-The API follows [Semantic Versioning](https://semver.org/). Before v1.0.0, a minor release may still
-break it; from v1.0.0 on, CI rejects incompatible changes to the exported API (`gorelease`). The
+The API follows [Semantic Versioning](https://semver.org/) and is stable since v1.0.0: 1.x releases
+only add to it, and CI rejects incompatible changes to the exported API (`gorelease`). The
 default model follows Google's recommendation and may change in a minor release: pin one with
 `WithModel` if your output must not change.
 
