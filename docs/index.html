@@ -246,7 +246,8 @@ table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 64
 th, td { text-align: left; padding: 13px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-faint); font-weight: 600; background: color-mix(in srgb, var(--bg) 60%, var(--bg-elev)); }
 tr:last-child td { border-bottom: 0; }
-td.m { font-family: "JetBrains Mono", monospace; font-size: 13.5px; white-space: nowrap; color: var(--fg); }
+td.m { font-family: "JetBrains Mono", monospace; font-size: 13.5px; color: var(--fg); min-width: 12em; max-width: 22em; overflow-wrap: break-word; }
+td.d { min-width: 16em; }
 td .cmd { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--mint); background: color-mix(in srgb, var(--mint) 12%, transparent); padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
 td.d { color: var(--fg-muted); }
 tr.group th { background: transparent; color: var(--accent); padding-top: 22px; border-bottom: 1px solid var(--line); }
@@ -304,7 +305,7 @@ td .cmd.stub { color: var(--warn); background: color-mix(in srgb, var(--warn) 13
       <a href="#quickstart">Quickstart</a>
       <a href="#api">API</a>
       <a href="#auth">Auth</a>
-      <a href="#roadmap">Roadmap</a>
+      <a href="#roadmap">Releases</a>
     </nav>
     <button class="icon-btn" id="theme" type="button" aria-label="Toggle colour theme">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -360,30 +361,30 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
       <p class="section-lede"><a href="https://github.com/Allan-Nava/go-gemini/releases/tag/v1.2.0">v1.2.0</a> is out: the model can call your Go functions, and a chat runs the round trip for you. The API is stable since v1.0.0; 1.x releases only add to it.</p>
       <div class="features">
         <div class="card reveal">
-          <span class="pill ok">Works</span>
-          <h3>A real call</h3>
+          <span class="pill ok">Calls</span>
+          <h3>Everything the API does for text</h3>
           <ul>
-            <li><code>GenerateContent</code> against the official API</li>
-            <li>Typed errors: <code>*APIError</code>, <code>ErrMissingAPIKey</code></li>
-            <li>Offline tests with <code>httptest</code>, race-clean</li>
+            <li>Single calls, streams and multi-turn chats</li>
+            <li>Images and files, JSON output with a schema</li>
+            <li>Function calling, thinking, token counting</li>
           </ul>
         </div>
         <div class="card reveal">
-          <span class="pill no">Removed</span>
-          <h3>The Bard client</h3>
+          <span class="pill ok">Built in</span>
+          <h3>The plumbing is handled</h3>
           <ul>
-            <li><code>NewGoGemini</code> and <code>GetAnswer</code> (a stub)</li>
-            <li>The <code>configuration</code>, <code>constants</code> and <code>env</code> packages</li>
-            <li>Breaking change: see the <a href="https://github.com/Allan-Nava/go-gemini/blob/main/CHANGELOG.md">changelog</a></li>
+            <li>Retries with backoff on 429 and 5xx</li>
+            <li>A time limit per attempt that never cuts a stream</li>
+            <li>The key stays on the API host, over HTTPS only</li>
           </ul>
         </div>
         <div class="card reveal">
           <span class="pill next">Stable</span>
-          <h3>v1.0.0</h3>
+          <h3>v1.x</h3>
           <ul>
-            <li>The exported API is frozen</li>
+            <li>The exported API is frozen since v1.0.0</li>
             <li>CI rejects incompatible changes</li>
-            <li>1.x releases only add</li>
+            <li>Standard library only, no dependencies</li>
           </ul>
         </div>
       </div>
@@ -434,7 +435,7 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
     <div class="wrap">
       <p class="kicker">API</p>
       <h2>Package gogemini</h2>
-      <p class="section-lede">Everything you need for a single-turn call. Runnable examples are on <a href="https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini">pkg.go.dev</a>; request semantics are in the <a href="https://ai.google.dev/api/generate-content">Gemini API reference</a>.</p>
+      <p class="section-lede">The main entry points; the <a href="https://github.com/Allan-Nava/go-gemini#api-at-a-glance">README</a> lists every exported identifier. Runnable examples are on <a href="https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini">pkg.go.dev</a>; request semantics are in the <a href="https://ai.google.dev/api/generate-content">Gemini API reference</a>.</p>
       <div class="table-wrap reveal">
         <table>
           <thead><tr><th>Symbol</th><th>Kind</th><th>What it does</th></tr></thead>
@@ -445,6 +446,8 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
             <tr><td class="m">WithBaseURL</td><td><span class="cmd">option</span></td><td class="d">Another host: a proxy, or an <code>httptest</code> server in your tests. HTTPS only; plain HTTP for loopback.</td></tr>
             <tr><td class="m">GenerateContent(ctx, prompt)</td><td><span class="cmd">method</span></td><td class="d">Sends one user prompt to <code>:generateContent</code> and returns the <code>*Response</code>.</td></tr>
             <tr><td class="m">Generate(ctx, req)</td><td><span class="cmd">method</span></td><td class="d">Same call with a full <code>GenerateContentRequest</code>, for callers that build the contents themselves.</td></tr>
+            <tr><td class="m">Content · Part · Candidate · UsageMetadata</td><td><span class="cmd">type</span></td><td class="d">A turn and its pieces (text, <code>Blob</code>, <code>FileData</code>, calls, results), one generated answer, and its token counts.</td></tr>
+            <tr><td class="m">Ptr · DefaultBaseURL · APIKeyEnv</td><td><span class="cmd">helper</span></td><td class="d">A pointer for optional config values such as a temperature of 0; the API host; the key's environment variable.</td></tr>
             <tr><td class="m">Response.Text()</td><td><span class="cmd">method</span></td><td class="d">Text of the first candidate; empty when the prompt was blocked (see <code>PromptFeedback</code>).</td></tr>
             <tr><td class="m">GenerateContentStream · GenerateStream</td><td><span class="cmd">method</span></td><td class="d">Stream the answer as an <code>iter.Seq2[*Response, error]</code>; breaking out of the loop closes the connection.</td></tr>
             <tr><td class="m">NewChat · Chat.Send · Chat.History</td><td><span class="cmd">method</span></td><td class="d">A multi-turn conversation; a turn is kept only when the model answers.</td></tr>
@@ -453,7 +456,8 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
             <tr><td class="m">JSONResponse(schema)</td><td><span class="cmd">func</span></td><td class="d">JSON output that conforms to a JSON Schema, via <code>GenerationConfig.ResponseFormat</code>.</td></tr>
             <tr><td class="m">WithSafetySettings · SafetySetting</td><td><span class="cmd">option</span></td><td class="d">Blocking thresholds per harm category; each candidate carries its <code>SafetyRatings</code>.</td></tr>
             <tr><td class="m">ThinkingConfig · Response.Thoughts</td><td><span class="cmd">type</span></td><td class="d">Reasoning level or budget; <code>Text()</code> leaves the reasoning out, and chats send thought signatures back.</td></tr>
-            <tr><td class="m">Chat.AddFunction · FunctionHandler</td><td><span class="cmd">method</span></td><td class="d">Let the model call your Go functions; <code>Send</code> runs them and returns the final answer.</td></tr>
+            <tr><td class="m">Chat.AddFunction · FunctionHandler</td><td><span class="cmd">method</span></td><td class="d">Let the model call your Go functions; <code>Send</code> runs them and returns the final answer, up to <code>SetMaxFunctionRounds</code> rounds (<code>ErrFunctionCallLimit</code> beyond).</td></tr>
+            <tr><td class="m">FunctionDeclaration · FunctionCall · FunctionResponse</td><td><span class="cmd">type</span></td><td class="d">A function's name, description and JSON Schema; a call with its arguments; the result sent back.</td></tr>
             <tr><td class="m">Tool · ToolConfig · Response.FunctionCalls</td><td><span class="cmd">type</span></td><td class="d">Function calling by hand, outside a chat: declare tools, read the calls, send <code>FunctionResponsePart</code>s.</td></tr>
             <tr><td class="m">Chat.SendStream · CountTokens</td><td><span class="cmd">method</span></td><td class="d">Stream a chat reply into the history; count a prompt's tokens before sending it.</td></tr>
             <tr><td class="m">WithRetry · RetryPolicy</td><td><span class="cmd">option</span></td><td class="d">Retry 408, 429, 5xx and network errors with backoff and jitter; 4 attempts by default, honouring Google's <code>RetryInfo</code>.</td></tr>
@@ -509,9 +513,9 @@ fmt.<span class="f">Println</span>(resp.<span class="f">Text</span>())</code></p
 
   <section id="roadmap">
     <div class="wrap">
-      <p class="kicker">Roadmap</p>
-      <h2>What comes next</h2>
-      <p class="section-lede">Tracked as <a href="https://github.com/Allan-Nava/go-gemini/milestones">GitHub milestones</a>, generated from <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/milestone.md">docs/milestone.md</a>.</p>
+      <p class="kicker">Releases</p>
+      <h2>Release history</h2>
+      <p class="section-lede">Every release is in the <a href="https://github.com/Allan-Nava/go-gemini/blob/main/CHANGELOG.md">changelog</a>; planned work is tracked as <a href="https://github.com/Allan-Nava/go-gemini/milestones">GitHub milestones</a>, generated from <a href="https://github.com/Allan-Nava/go-gemini/blob/main/docs/milestone.md">docs/milestone.md</a>.</p>
       <div class="steps">
         <ol class="step-list">
           <li><b>v0.2.0 &middot; first working client</b><span>Released 2026-09-29.</span></li>

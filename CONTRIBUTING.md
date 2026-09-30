@@ -31,6 +31,10 @@ golangci-lint run ./...   # v2.14.0, config in .golangci.yml
 
 CI also checks that coverage of the `gogemini` package stays at 90% or more, and runs `gorelease`
 against the latest tag: from v1.0.0 on, an incompatible change to the exported API fails the build.
+That includes the subtle ones: changing the value of an exported constant, or adding a slice, map or
+func field to an exported struct that could be compared with `==`. Check before pushing with
+`go run golang.org/x/exp/cmd/gorelease@latest -base=<latest tag>` on a clean checkout, and list any new
+identifier in the README's "API at a glance" table.
 
 ## Changelog and documentation
 

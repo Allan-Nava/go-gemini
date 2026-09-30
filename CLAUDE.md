@@ -41,7 +41,7 @@ SDK Go (`github.com/Allan-Nava/go-gemini`, package `gogemini`) per l'**API uffic
 ## Puntatori
 
 - Milestone: `docs/milestone.md` (fonte di verità delle milestone/issue GitHub) · Changelog: `CHANGELOG.md` · Revisione API pre-v1.0: `docs/api-review-v1.0.0-2026-09-29.md` · Audit: `docs/audit-v0.2.0-2026-09-29.md`, `docs/audit-2026-09-29.md` (pre-v0.2.0) · Archivio: `docs/archive/`
-- Esempio eseguibile: `examples/generate/main.go` (flag `-model`, `-timeout`).
+- Esempi eseguibili: `examples/generate/main.go` (flag `-model`, `-timeout`, `-stream`, `-system`, `-image`, `-count`) e `examples/functions/main.go` (tool calling con `multiply`). Elenco completo dei simboli esportati: README § "API at a glance" — aggiornarlo quando si aggiunge un identificatore.
 - Sito: `docs/index.html` (+ `docs/404.html`), stesso stile di `Allan-Nava/MistServer-go-sdk` (token colore su `:root`, dark/light, niente dipendenze JS).
 - Regole per altri agenti: `AGENTS.md` (tenerlo coerente con questo file). Contributi: `CONTRIBUTING.md` · Sicurezza: `SECURITY.md` (segnalazione privata attiva su GitHub).
 - API ufficiale Gemini: https://ai.google.dev/api · modelli: https://ai.google.dev/gemini-api/docs/models

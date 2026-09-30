@@ -25,6 +25,9 @@ contraddirlo.
 - Test senza rete: `httptest` + `WithBaseURL`; nessun test chiama Google.
 - Niente dipendenze nuove senza una ragione scritta: il modulo è solo standard library.
 - Non reintrodurre lo scraping del web client di Gemini/Bard (cookie, `SNlM0e`).
+- **API congelata dalla v1.0.0**: si aggiunge soltanto. Niente rimozioni o rinomine, niente cambi di firma o del valore
+  di costanti esportate, niente campi slice/map/func su struct esportate confrontabili. Prima del commit:
+  `gorelease -base=<ultimo tag>` su un clone pulito; il job `api-compat` in CI lo blocca comunque.
 
 ## Puntatori
 

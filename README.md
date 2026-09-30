@@ -8,8 +8,8 @@ the module has no dependencies. Latest release: **v1.2.0** ([changelog](CHANGELO
 v1.0.0: the API is frozen and 1.x releases only add to it.
 
 Site: https://allan-nava.github.io/go-gemini/ · Status and priorities:
-[latest audit](docs/audit-v0.2.0-2026-09-29.md) · [Milestones](docs/milestone.md) ·
-[Changelog](CHANGELOG.md)
+[API review](docs/api-review-v1.0.0-2026-09-29.md) · [Milestones](docs/milestone.md) ·
+[Changelog](CHANGELOG.md) · [Go reference](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini)
 
 ## Install
 
@@ -219,6 +219,22 @@ if errors.As(err, &apiErr) && apiErr.StatusCode == 429 {
 	// quota exceeded: back off
 }
 ```
+
+## API at a glance
+
+Everything exported by package `gogemini`; each has a doc comment and, where it helps, a runnable
+example on [pkg.go.dev](https://pkg.go.dev/github.com/Allan-Nava/go-gemini/gogemini).
+
+| Area | Identifiers |
+|---|---|
+| Client | `New`, `Option`, `WithAPIKey`, `WithModel`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, `WithRetry`, `WithSystemInstruction`, `WithGenerationConfig`, `WithSafetySettings`, `Client.Model`, `DefaultBaseURL`, `APIKeyEnv` |
+| Calls | `Client.GenerateContent`, `Client.Generate`, `Client.GenerateContentStream`, `Client.GenerateStream`, `Client.CountTokens` |
+| Chat | `Client.NewChat`, `Chat.Send`, `Chat.SendParts`, `Chat.SendStream`, `Chat.History`, `Chat.AddFunction`, `Chat.SetMaxFunctionRounds` |
+| Request | `GenerateContentRequest`, `Content`, `Part`, `Blob`, `FileData`, `TextPart`, `InlineDataPart`, `FileDataPart`, `UserContent`, `GenerationConfig`, `Ptr`, `ResponseFormat`, `TextFormat`, `JSONResponse`, `ThinkingConfig`, `ThinkingLevel*`, `SafetySetting`, `HarmCategory*`, `Block*` |
+| Functions | `Tool`, `FunctionDeclaration`, `ToolConfig`, `FunctionCallingConfig`, `FunctionCalling*`, `FunctionCall`, `FunctionResponse`, `FunctionCallPart`, `FunctionResponsePart`, `FunctionHandler` |
+| Response | `Response`, `Response.Text`, `Response.Thoughts`, `Response.FunctionCalls`, `Candidate`, `PromptFeedback`, `SafetyRating`, `UsageMetadata`, `CountTokensResponse` |
+| Retries | `RetryPolicy`, `DefaultRetryPolicy` |
+| Errors | `APIError` (`Retryable`, `Reason`, `RetryDelay`), `ErrMissingAPIKey`, `ErrInvalidBaseURL`, `ErrInvalidTimeout`, `ErrEmptyModel`, `ErrInvalidRetryPolicy`, `ErrEmptyRequest`, `ErrRedirectOtherHost`, `ErrFunctionCallLimit` |
 
 ## Authentication
 
