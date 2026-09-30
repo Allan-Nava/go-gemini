@@ -155,6 +155,41 @@ cfg := gogemini.GenerationConfig{ThinkingConfig: &gogemini.ThinkingConfig{
 `resp.Text()` leaves the reasoning out; `resp.Thoughts()` returns its summary. A `Chat` keeps the
 parts' `ThoughtSignature` and sends it back in later turns, as newer models require.
 
+### Function calling
+
+Declare a Go function and let the model call it. `Chat.Send` runs the calls, sends the results back
+and returns the model's final answer:
+
+```go
+chat := client.NewChat()
+chat.AddFunction(gogemini.FunctionDeclaration{
+	Name:        "get_weather",
+	Description: "Current weather in a city.",
+	Parameters: map[string]any{ // JSON Schema of the arguments
+		"type":       "object",
+		"properties": map[string]any{"city": map[string]any{"type": "string"}},
+		"required":   []string{"city"},
+	},
+}, func(ctx context.Context, args json.RawMessage) (any, error) {
+	var p struct{ City string }
+	if err := json.Unmarshal(args, &p); err != nil {
+		return nil, err
+	}
+	return map[string]any{"condition": "sunny", "celsius": 24}, nil
+})
+resp, err := chat.Send(ctx, "What's the weather in Rome?")
+```
+
+- A handler's error is reported to the model as `{"error": …}`; the model decides what to do.
+- Calls in one reply run in order; a result that is not a JSON object is wrapped as `{"result": …}`.
+- After 10 rounds of calls `Send` stops with `ErrFunctionCallLimit` (`SetMaxFunctionRounds`).
+- The calls, results and answer go into the history together, only when the turn succeeds.
+- `SendStream` does not declare or run functions.
+
+Without a chat: put `Tools` (and optionally `ToolConfig`, e.g. mode `FunctionCallingAny`) in a
+`GenerateContentRequest`, read `resp.FunctionCalls()`, and send `FunctionResponsePart`s back yourself.
+`go run ./examples/functions "What is 48213 times 7919?"` shows the whole loop.
+
 ### Counting tokens
 
 ```go

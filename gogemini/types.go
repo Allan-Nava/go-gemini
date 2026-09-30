@@ -2,13 +2,16 @@ package gogemini
 
 import "strings"
 
-// Part is one piece of a message: text, inline bytes (an image, a PDF…) or a
-// reference to a file. Set one of Text, InlineData or FileData; TextPart,
-// InlineDataPart and FileDataPart build them.
+// Part is one piece of a message: text, inline bytes (an image, a PDF…), a
+// reference to a file, a function call or a function's result. Set one of them;
+// TextPart, InlineDataPart, FileDataPart, FunctionCallPart and
+// FunctionResponsePart build them.
 type Part struct {
-	Text       string    `json:"text,omitempty"`
-	InlineData *Blob     `json:"inlineData,omitempty"`
-	FileData   *FileData `json:"fileData,omitempty"`
+	Text             string            `json:"text,omitempty"`
+	InlineData       *Blob             `json:"inlineData,omitempty"`
+	FileData         *FileData         `json:"fileData,omitempty"`
+	FunctionCall     *FunctionCall     `json:"functionCall,omitempty"`
+	FunctionResponse *FunctionResponse `json:"functionResponse,omitempty"`
 	// Thought marks a part of the model's reasoning, returned when
 	// ThinkingConfig.IncludeThoughts is set. Response.Text leaves these out.
 	Thought bool `json:"thought,omitempty"`
@@ -156,6 +159,9 @@ type GenerateContentRequest struct {
 	SystemInstruction *Content          `json:"systemInstruction,omitempty"`
 	GenerationConfig  *GenerationConfig `json:"generationConfig,omitempty"`
 	SafetySettings    []SafetySetting   `json:"safetySettings,omitempty"`
+	// Tools are the functions the model may call; see Tool and Chat.AddFunction.
+	Tools      []Tool      `json:"tools,omitempty"`
+	ToolConfig *ToolConfig `json:"toolConfig,omitempty"`
 }
 
 // Candidate is one generated answer.

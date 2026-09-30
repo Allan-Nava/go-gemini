@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Function calling: `Tool`, `FunctionDeclaration` (parameters as a JSON Schema), `ToolConfig`,
+  `FunctionCallingConfig` and the `FunctionCalling*` modes; `GenerateContentRequest.Tools` and `ToolConfig`.
+- `Part.FunctionCall` and `Part.FunctionResponse`; `FunctionCallPart`, `FunctionResponsePart` and
+  `Response.FunctionCalls`.
+- `Chat.AddFunction(decl, handler)`: `Chat.Send` runs the model's calls, sends the results back and
+  returns the final answer, keeping the whole exchange in the history; `SetMaxFunctionRounds` and
+  `ErrFunctionCallLimit` bound it.
+- `examples/functions`: a chat that calls a Go `multiply` function.
+
 ## [v1.1.0] — 2026-09-30
 
 Images and files, JSON output with a schema, safety settings, thinking, chat streaming and token

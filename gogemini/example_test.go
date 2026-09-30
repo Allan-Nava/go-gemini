@@ -274,3 +274,48 @@ func ExampleChat_SendStream() {
 	// Channels connect goroutines.
 	// Channels connect goroutines.
 }
+
+func ExampleChat_AddFunction() {
+	// A fake model: first it calls get_weather, then it answers with the result.
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if calls == 1 {
+			io.WriteString(w, `{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"get_weather","args":{"city":"Rome"}}}]}}]}`)
+			return
+		}
+		io.WriteString(w, `{"candidates":[{"content":{"role":"model","parts":[{"text":"Sunny, 24°C."}]}}]}`)
+	}))
+	defer srv.Close()
+
+	client, err := gogemini.New(gogemini.WithAPIKey("YOUR_API_KEY"), gogemini.WithBaseURL(srv.URL))
+	if err != nil {
+		log.Fatal(err)
+	}
+	chat := client.NewChat()
+	chat.AddFunction(gogemini.FunctionDeclaration{
+		Name:        "get_weather",
+		Description: "Current weather in a city.",
+		Parameters: map[string]any{
+			"type":       "object",
+			"properties": map[string]any{"city": map[string]any{"type": "string"}},
+			"required":   []string{"city"},
+		},
+	}, func(ctx context.Context, args json.RawMessage) (any, error) {
+		var p struct{ City string }
+		if err := json.Unmarshal(args, &p); err != nil {
+			return nil, err
+		}
+		fmt.Println("looking up", p.City)
+		return map[string]any{"condition": "sunny", "celsius": 24}, nil
+	})
+
+	resp, err := chat.Send(context.Background(), "What's the weather in Rome?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(resp.Text())
+	// Output:
+	// looking up Rome
+	// Sunny, 24°C.
+}

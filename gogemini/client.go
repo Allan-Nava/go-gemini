@@ -18,7 +18,8 @@
 // WithGenerationConfig set per-client defaults, and transient failures (429, 5xx)
 // are retried with exponential backoff according to WithRetry. Turns can carry
 // images and files (InlineDataPart, FileDataPart), output can be JSON matching a
-// schema (JSONResponse), and CountTokens measures a prompt before sending it.
+// schema (JSONResponse), CountTokens measures a prompt before sending it, and
+// Chat.AddFunction lets the model call Go functions.
 //
 // The key is sent in the x-goog-api-key header, only over HTTPS (plain HTTP is
 // accepted for loopback test servers), and never to a host other than the base URL:

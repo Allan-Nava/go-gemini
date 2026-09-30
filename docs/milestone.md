@@ -167,17 +167,22 @@ blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
 > **Prova reale 2026-09-30**, eseguita a mano dall'utente su `gemini-3.5-flash-lite`: `CountTokens` → 8 token; un PNG di prova
 > generato apposta (cerchio rosso su bianco, nessun dato dell'utente) descritto correttamente, 1111 token. Tag `v1.1.0`.
 
-## v1.2.0 — Tool calling
+## v1.2.0 — Tool calling (codice completo, in attesa del tag)
 
 **Obiettivo:** far chiamare al modello funzioni Go dichiarate dal chiamante, con il giro domanda → chiamata → risultato → risposta gestito dall'SDK.
 
-- [ ] <!-- id:v120-tools --> **Dichiarazione degli strumenti**: `GenerateContentRequest.Tools` (`FunctionDeclarations` con `Name`, `Description`,
-      schema dei parametri) e `ToolConfig` (`functionCallingConfig.mode`: `AUTO`, `ANY`, `NONE`, `VALIDATED`).
-- [ ] <!-- id:v120-function-parts --> **Chiamate e risultati**: `Part.FunctionCall` (`Name`, `Args`) e `Part.FunctionResponse` (`Name`, `Response`);
+- [x] <!-- id:v120-tools --> **Dichiarazione degli strumenti**: `GenerateContentRequest.Tools` (`FunctionDeclarations` con `Name`, `Description`,
+      schema dei parametri come `parametersJsonSchema`) e `ToolConfig` (`functionCallingConfig.mode`: `AUTO`, `ANY`, `NONE`, `VALIDATED`).
+- [x] <!-- id:v120-function-parts --> **Chiamate e risultati**: `Part.FunctionCall` (`Name`, `Args`) e `Part.FunctionResponse` (`Name`, `Response`);
       `Response.FunctionCalls()` per leggerle.
-- [ ] <!-- id:v120-chat-tools --> **Giro automatico in chat**: handler registrati per nome; `Chat.Send` esegue le chiamate, rimanda i risultati e
+- [x] <!-- id:v120-chat-tools --> **Giro automatico in chat**: handler registrati per nome; `Chat.Send` esegue le chiamate, rimanda i risultati e
       restituisce la risposta finale, con un limite al numero di giri e il `ctx` del chiamante passato agli handler.
 - [ ] <!-- id:v120-release --> **Rilascio v1.2.0**: `gorelease` senza cambiamenti incompatibili, prova reale con una funzione di esempio, tag.
+
+> **Avanzamento 2026-09-30**: nomi dei campi verificati sul riferimento scaricato. `Chat.AddFunction` + giro automatico in `Send`
+> (chiamate in ordine, errori degli handler e funzioni sconosciute riportati al modello, limite di 10 giri, turno atomico, `ctx`
+> del chiamante agli handler, firme del ragionamento conservate). `gorelease` contro `v1.1.0`: solo aggiunte, suggerita v1.2.0.
+> 12 mutazioni del giro, tutte intercettate. Da confermare dal vivo: `role: "user"` per i risultati delle funzioni.
 
 ## Storico
 
