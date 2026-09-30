@@ -13,6 +13,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/Allan-Nava/go-gemini/gogemini"
@@ -53,7 +54,8 @@ func main() {
 		if err := json.Unmarshal(args, &p); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(os.Stderr, "[multiply(%v, %v) = %v]\n", p.A, p.B, p.A*p.B)
+		num := func(x float64) string { return strconv.FormatFloat(x, 'f', -1, 64) }
+		fmt.Fprintf(os.Stderr, "[multiply(%s, %s) = %s]\n", num(p.A), num(p.B), num(p.A*p.B))
 		return map[string]float64{"product": p.A * p.B}, nil
 	})
 

@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [v1.2.0] — 2026-09-30
+
+Function calling: the model calls Go functions you declare, and `Chat.Send` runs the round trip.
+Only additions: `gorelease` against v1.1.0 finds no incompatible change.
+
 ### Added
 - Function calling: `Tool`, `FunctionDeclaration` (parameters as a JSON Schema), `ToolConfig`,
   `FunctionCallingConfig` and the `FunctionCalling*` modes; `GenerateContentRequest.Tools` and `ToolConfig`.
@@ -153,7 +158,8 @@ First working client, on the official Gemini API.
 
 - Skeleton of a Google Bard client (session cookie and `SNlM0e` token). Never sent a request.
 
-[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v1.1.0...main
+[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v1.2.0...main
+[v1.2.0]: https://github.com/Allan-Nava/go-gemini/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/Allan-Nava/go-gemini/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.4.0...v1.0.0
 [v0.4.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.3.0...v0.4.0

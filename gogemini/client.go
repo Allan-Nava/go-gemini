@@ -42,7 +42,7 @@ import (
 // to read the model a client uses.
 const (
 	// version is the SDK version, sent in the User-Agent header.
-	version = "1.1.0"
+	version = "1.2.0"
 	// defaultModel is used when WithModel is not given. It follows Google's
 	// recommended model and may change in a minor release.
 	defaultModel = "gemini-3.8-flash"

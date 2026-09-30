@@ -9,7 +9,7 @@ audit: [`audit-v0.2.0-2026-09-29.md`](audit-v0.2.0-2026-09-29.md).
 > item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
 ```
-  v0.2.0 ─► v0.3.0 ─► v0.4.0 ─► v1.0.0 (rilasciata) ─► v1.1.0 (rilasciata) ────────► v1.2.0
+  v0.2.0 ─► v0.3.0 ─► v0.4.0 ─► v1.0.0 (rilasciata) ─► v1.1.0 (rilasciata) ────────► v1.2.0 (rilasciata)
   client    hardening  streaming  API congelata        immagini, sicurezza, JSON,     tool calling
   ufficiale            chat, retry                     thinking, chat stream, token
 ```
@@ -167,7 +167,7 @@ blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
 > **Prova reale 2026-09-30**, eseguita a mano dall'utente su `gemini-3.5-flash-lite`: `CountTokens` → 8 token; un PNG di prova
 > generato apposta (cerchio rosso su bianco, nessun dato dell'utente) descritto correttamente, 1111 token. Tag `v1.1.0`.
 
-## v1.2.0 — Tool calling (codice completo, in attesa del tag)
+## v1.2.0 — Tool calling (rilasciata, 2026-09-30)
 
 **Obiettivo:** far chiamare al modello funzioni Go dichiarate dal chiamante, con il giro domanda → chiamata → risultato → risposta gestito dall'SDK.
 
@@ -177,16 +177,21 @@ blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
       `Response.FunctionCalls()` per leggerle.
 - [x] <!-- id:v120-chat-tools --> **Giro automatico in chat**: handler registrati per nome; `Chat.Send` esegue le chiamate, rimanda i risultati e
       restituisce la risposta finale, con un limite al numero di giri e il `ctx` del chiamante passato agli handler.
-- [ ] <!-- id:v120-release --> **Rilascio v1.2.0**: `gorelease` senza cambiamenti incompatibili, prova reale con una funzione di esempio, tag.
+- [x] <!-- id:v120-release --> **Rilascio v1.2.0**: `gorelease` senza cambiamenti incompatibili, prova reale con una funzione di esempio, tag.
 
 > **Avanzamento 2026-09-30**: nomi dei campi verificati sul riferimento scaricato. `Chat.AddFunction` + giro automatico in `Send`
 > (chiamate in ordine, errori degli handler e funzioni sconosciute riportati al modello, limite di 10 giri, turno atomico, `ctx`
 > del chiamante agli handler, firme del ragionamento conservate). `gorelease` contro `v1.1.0`: solo aggiunte, suggerita v1.2.0.
-> 12 mutazioni del giro, tutte intercettate. Da confermare dal vivo: `role: "user"` per i risultati delle funzioni.
+> 12 mutazioni del giro, tutte intercettate.
+>
+> **Prova reale 2026-09-30**, eseguita a mano dall'utente con `examples/functions` su `gemini-3.5-flash-lite`: il modello ha chiamato
+> `multiply(48213, 7919)`, la risposta finale è esatta (381.798.747), storia di 4 contenuti. **`role: "user"` per i risultati
+> delle funzioni accettato dall'API**: il dubbio del riferimento è chiuso. Tag `v1.2.0`.
 
 ## Storico
 
 - **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v1.2.0** (2026-09-30) — tool calling: `Chat.AddFunction`, `Tools`/`ToolConfig`, chiamate e risultati delle funzioni. Vedi `CHANGELOG.md`.
 - **v1.1.0** (2026-09-30) — immagini e file, output JSON con schema, sicurezza, thinking, chat in streaming, `CountTokens`. Vedi `CHANGELOG.md`.
 - **v1.0.0** (2026-09-29) — prima versione stabile: API congelata, timeout per tentativo (gli stream lunghi non vengono più tagliati). Vedi `CHANGELOG.md` e `api-review-v1.0.0-2026-09-29.md`.
 - **v0.4.0** (2026-09-29) — streaming, chat, parametri di generazione, retry con backoff, `golangci-lint`. Vedi `CHANGELOG.md`.
