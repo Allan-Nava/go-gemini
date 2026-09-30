@@ -52,6 +52,13 @@ un'opzione o un errore è compatibile. Non lo sono: rimuovere o rinominare, camb
   che Google consiglia; il retry assorbe i picchi e il default può cambiare in una minor.
 - **`DefaultBaseURL`, `APIKeyEnv`**: valori stabili, restano costanti esportate.
 
+## Dopo il congelamento (v1.1.0, 2026-09-30)
+
+Il primo lavoro sulla 1.x ha mostrato un caso che la revisione non aveva considerato: **aggiungere
+un campo slice a una struct esportata confrontabile è incompatibile** (`gorelease`: "old is
+comparable, new is not"). È successo con `Client` (campo privato: risolto con un puntatore) e con
+`PromptFeedback.SafetyRatings` (campo esportato: non aggiunto).
+
 ## Verifiche
 
 - Test con `-race`: copertura 98,0%; cinque mutazioni della logica del timeout, tutte intercettate.

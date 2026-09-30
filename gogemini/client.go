@@ -16,7 +16,9 @@
 // Beyond a single call: GenerateContentStream streams the answer as an iterator,
 // NewChat keeps a multi-turn conversation, WithSystemInstruction and
 // WithGenerationConfig set per-client defaults, and transient failures (429, 5xx)
-// are retried with exponential backoff according to WithRetry.
+// are retried with exponential backoff according to WithRetry. Turns can carry
+// images and files (InlineDataPart, FileDataPart), output can be JSON matching a
+// schema (JSONResponse), and CountTokens measures a prompt before sending it.
 //
 // The key is sent in the x-goog-api-key header, only over HTTPS (plain HTTP is
 // accepted for loopback test servers), and never to a host other than the base URL:
@@ -87,6 +89,9 @@ type Client struct {
 	retry             RetryPolicy
 	systemInstruction *Content
 	generationConfig  *GenerationConfig
+	// safetySettings is behind a pointer: a slice field would make Client
+	// incomparable, an incompatible API change (see api-review-v1.0.0).
+	safetySettings *[]SafetySetting
 }
 
 // Option configures a Client.
@@ -135,11 +140,33 @@ func WithSystemInstruction(text string) Option {
 }
 
 // WithGenerationConfig sets the generation parameters for every request that does not
-// carry its own GenerateContentRequest.GenerationConfig. The config is copied.
+// carry its own GenerateContentRequest.GenerationConfig. The config is copied, except
+// for the value of a ResponseFormat schema, which is only read.
 func WithGenerationConfig(cfg GenerationConfig) Option {
 	return func(c *Client) {
 		cfg.StopSequences = append([]string(nil), cfg.StopSequences...)
+		if cfg.ResponseFormat != nil {
+			rf := *cfg.ResponseFormat
+			if rf.Text != nil {
+				tf := *rf.Text
+				rf.Text = &tf
+			}
+			cfg.ResponseFormat = &rf
+		}
+		if cfg.ThinkingConfig != nil {
+			tc := *cfg.ThinkingConfig
+			cfg.ThinkingConfig = &tc
+		}
 		c.generationConfig = &cfg
+	}
+}
+
+// WithSafetySettings sets the safety settings for every request that does not carry
+// its own GenerateContentRequest.SafetySettings. The settings are copied.
+func WithSafetySettings(settings ...SafetySetting) Option {
+	return func(c *Client) {
+		s := append([]SafetySetting(nil), settings...)
+		c.safetySettings = &s
 	}
 }
 

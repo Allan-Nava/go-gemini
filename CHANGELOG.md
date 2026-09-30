@@ -6,6 +6,25 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Images and files: `Part.InlineData` (`Blob`, sent base64-encoded) and `Part.FileData` (`FileData`);
+  `TextPart`, `InlineDataPart`, `FileDataPart`, `UserContent`; `Chat.SendParts`.
+- JSON output with a schema: `GenerationConfig.ResponseFormat` (`ResponseFormat`, `TextFormat`) and
+  `JSONResponse(schema)`. The API's `responseSchema` and `responseJsonSchema` are deprecated and not used.
+- Safety: `SafetySetting`, `GenerateContentRequest.SafetySettings`, `WithSafetySettings`, and
+  `Candidate.SafetyRatings` (`SafetyRating`); `HarmCategory*` and `Block*` constants.
+- Thinking: `GenerationConfig.ThinkingConfig` (`IncludeThoughts`, `ThinkingBudget`, `ThinkingLevel`),
+  `ThinkingLevel*` constants, `Part.Thought`, `Part.ThoughtSignature` and `Response.Thoughts`.
+- `Chat.SendStream`: a streamed chat turn, added to the history when the stream ends.
+- `Client.CountTokens` and `CountTokensResponse`.
+- `examples/generate`: `-image` and `-count` flags.
+
+### Changed
+- `Response.Text` leaves out the parts of the model's reasoning (`Part.Thought`). They only arrive when
+  `ThinkingConfig.IncludeThoughts` is set, so nothing changes for existing code.
+- `Chat` keeps the thought signatures of the model's replies and sends them back in later turns;
+  without them newer models can end a reply with `MISSING_THOUGHT_SIGNATURE`.
+
 ## [v1.0.0] — 2026-09-29
 
 The first stable release: the exported API is frozen, and from here CI rejects incompatible changes

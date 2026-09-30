@@ -131,28 +131,38 @@ restano quelli originali, perché sono stabili.
 > (`version`, `defaultModel`) non più esportate, perché `apidiff` le tratta come incompatibili; gate CI su copertura
 > (≥ 90%, oggi 96,6%) e su `gorelease`; `CONTRIBUTING.md`, `SECURITY.md`, workflow `release.yml` dal changelog.
 
-## v1.1.0 — Multimodale, sicurezza e output strutturato (nuova, 2026-09-29)
+## v1.1.0 — Multimodale, sicurezza e output strutturato (codice completo, in attesa del tag)
 
 **Obiettivo:** coprire i casi d'uso più richiesti dopo il testo semplice (immagini e file, filtri di sicurezza, risposte JSON con schema, conteggio dei token), solo con aggiunte compatibili.
 
 Vincolo: dalla v1.0.0 l'API è congelata. Ogni item **aggiunge** campi, tipi, metodi o opzioni; `api-compat` in CI
 blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
 
-- [ ] <!-- id:v110-inline-data --> **Immagini e file inline**: `Part.InlineData` (`*Blob{MIMEType, Data []byte}`, base64 via `encoding/json`) e
-      `Part.FileData` (`*FileData{MIMEType, FileURI}`); costruttori `TextPart`, `InlineDataPart`; esempio con un'immagine. Test sul JSON inviato.
-- [ ] <!-- id:v110-safety --> **Impostazioni e valutazioni di sicurezza**: `GenerateContentRequest.SafetySettings` (`category`, `threshold`) e
-      opzione `WithSafetySettings` come default del client; `SafetyRatings` su `Candidate` e `PromptFeedback`.
-- [ ] <!-- id:v110-structured-output --> **Output strutturato**: `GenerationConfig.ResponseSchema` (schema JSON come `any`, serializzato
-      così com'è) insieme a `ResponseMIMEType: "application/json"`; esempio che decodifica la risposta in una struct.
-- [ ] <!-- id:v110-thinking --> **Ragionamento dei modelli**: `GenerationConfig.ThinkingConfig` (`IncludeThoughts`, `ThinkingBudget`) e
-      `Part.Thought`; `Response.Text()` salta le parti di ragionamento (oggi non arrivano, quindi nessun cambiamento per chi non le chiede),
+- [x] <!-- id:v110-inline-data --> **Immagini e file inline**: `Part.InlineData` (`*Blob{MIMEType, Data []byte}`, base64 via `encoding/json`) e
+      `Part.FileData` (`*FileData{MIMEType, FileURI}`); costruttori `TextPart`, `InlineDataPart`, `FileDataPart`, `UserContent`;
+      `Chat.SendParts`; esempio con un'immagine. Test sul JSON inviato.
+- [x] <!-- id:v110-safety --> **Impostazioni e valutazioni di sicurezza**: `GenerateContentRequest.SafetySettings` (`category`, `threshold`) e
+      opzione `WithSafetySettings` come default del client; `SafetyRatings` su `Candidate`. Non su `PromptFeedback`: una slice
+      la renderebbe non confrontabile, cambiamento incompatibile (trovato da `gorelease`).
+- [x] <!-- id:v110-structured-output --> **Output strutturato**: `GenerationConfig.ResponseFormat` (`responseFormat.text` = `mimeType`
+      `APPLICATION_JSON` + `schema` JSON Schema) e helper `JSONResponse(schema)`; esempio che decodifica la risposta in una struct.
+      `responseSchema`/`responseJsonSchema` sono deprecati nell'API (riferimento del 2026-09-30): non si implementano.
+- [x] <!-- id:v110-thinking --> **Ragionamento dei modelli**: `GenerationConfig.ThinkingConfig` (`IncludeThoughts`, `ThinkingBudget`,
+      `ThinkingLevel` `MINIMAL`…`HIGH`), `Part.Thought` e `Part.ThoughtSignature` (la chat la rimanda nei turni successivi, altrimenti
+      `MISSING_THOUGHT_SIGNATURE`); `Response.Text()` salta le parti di ragionamento (oggi non arrivano, quindi nessun cambiamento per chi non le chiede),
       `Response.Thoughts()` le restituisce.
-- [ ] <!-- id:v110-chat-stream --> **Chat in streaming**: `Chat.SendStream(ctx, text)` → `iter.Seq2[*Response, error]`; a fine stream la risposta
+- [x] <!-- id:v110-chat-stream --> **Chat in streaming**: `Chat.SendStream(ctx, text)` → `iter.Seq2[*Response, error]`; a fine stream la risposta
       completa entra nella storia, su errore o `break` la storia resta com'era.
-- [ ] <!-- id:v110-count-tokens --> **Conteggio dei token**: `Client.CountTokens(ctx, req) (int, error)` su `:countTokens` (endpoint e campo
-      `totalTokens` da verificare sulla documentazione prima di implementare), stesso percorso di invio, retry e timeout.
+- [x] <!-- id:v110-count-tokens --> **Conteggio dei token**: `Client.CountTokens(ctx, req) (*CountTokensResponse, error)` su `:countTokens`
+      con `generateContentRequest` (verificato: risposta `totalTokens`, `cachedContentTokenCount`); una struct e non un `int`, per poterla
+      estendere. Stesso percorso di invio, retry e timeout.
 - [ ] <!-- id:v110-release --> **Rilascio v1.1.0**: `gorelease` senza cambiamenti incompatibili, prova reale a mano (testo, immagine, stream
       della chat), `version` = `1.1.0`, changelog con data, tag — la release la crea il workflow.
+
+> **Avanzamento 2026-09-30**: sei item su sette nel codice. Nomi dei campi verificati sul riferimento ufficiale scaricato
+> (lì `responseSchema`/`responseJsonSchema` risultano deprecati → `responseFormat`). `gorelease` contro `v1.0.0` ha trovato due
+> rotture di confrontabilità (`Client`, `PromptFeedback`), corrette prima del commit: ora solo aggiunte, suggerita v1.1.0.
+> 11 mutazioni del codice nuovo, tutte intercettate. `Chat` ora rimanda le `thoughtSignature`.
 
 ## v1.2.0 — Tool calling
 

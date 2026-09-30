@@ -84,7 +84,8 @@ history := chat.History()
 ```
 
 A turn is kept only when the model answers, so a failed `Send` can simply be called again.
-`NewChat(history...)` resumes an earlier conversation.
+`NewChat(history...)` resumes an earlier conversation. `chat.SendStream(ctx, text)` streams the reply
+and adds it to the history when the stream ends; `chat.SendParts` sends images or files.
 
 ### Generation parameters and system instruction
 
@@ -101,6 +102,64 @@ client, err := gogemini.New(
 These are defaults: a request's own `SystemInstruction` or `GenerationConfig` wins. `GenerationConfig`
 also has `TopP`, `TopK`, `CandidateCount`, `StopSequences`, `ResponseMIMEType` and `Seed`; use
 `gogemini.Ptr` where zero is a meaningful value.
+
+### Images and files
+
+```go
+img, _ := os.ReadFile("photo.png")
+resp, err := client.Generate(ctx, &gogemini.GenerateContentRequest{
+	Contents: []gogemini.Content{gogemini.UserContent(
+		gogemini.TextPart("What is in this picture?"),
+		gogemini.InlineDataPart("image/png", img),
+	)},
+})
+```
+
+`FileDataPart(mimeType, uri)` refers to a file by URI instead. In a chat, `chat.SendParts(ctx, parts...)`
+sends a turn made of parts.
+
+### JSON output with a schema
+
+```go
+schema := map[string]any{
+	"type":       "object",
+	"properties": map[string]any{"name": map[string]any{"type": "string"}},
+	"required":   []string{"name"},
+}
+resp, err := client.Generate(ctx, &gogemini.GenerateContentRequest{
+	Contents:         []gogemini.Content{gogemini.UserContent(gogemini.TextPart("Who wrote the first program?"))},
+	GenerationConfig: &gogemini.GenerationConfig{ResponseFormat: gogemini.JSONResponse(schema)},
+})
+// json.Unmarshal([]byte(resp.Text()), &out)
+```
+
+### Safety settings
+
+```go
+client, err := gogemini.New(gogemini.WithSafetySettings(
+	gogemini.SafetySetting{Category: gogemini.HarmCategoryHarassment, Threshold: gogemini.BlockOnlyHigh},
+))
+```
+
+A request's own `SafetySettings` win. Each `Candidate` carries its `SafetyRatings`.
+
+### Thinking
+
+```go
+cfg := gogemini.GenerationConfig{ThinkingConfig: &gogemini.ThinkingConfig{
+	ThinkingLevel:   gogemini.ThinkingLevelLow,
+	IncludeThoughts: true,
+}}
+```
+
+`resp.Text()` leaves the reasoning out; `resp.Thoughts()` returns its summary. A `Chat` keeps the
+parts' `ThoughtSignature` and sends it back in later turns, as newer models require.
+
+### Counting tokens
+
+```go
+n, err := client.CountTokens(ctx, req) // n.TotalTokens, with the client's defaults applied
+```
 
 ### Retries
 
@@ -159,8 +218,8 @@ grep -c '^GEMINI_API_KEY=.' .env
 set -a && source ./.env && set +a && go run ./examples/generate "Explain goroutines in one sentence"
 ```
 
-Flags: `-model`, `-timeout`, `-stream` (print the answer as it arrives) and `-system` (system
-instruction). The model and token usage are printed on stderr.
+Flags: `-model`, `-timeout`, `-stream` (print the answer as it arrives), `-system` (system
+instruction), `-image file` (send an image with the prompt) and `-count` (only count tokens). The model and token usage are printed on stderr.
 
 ## Upgrading from v0.4.0
 

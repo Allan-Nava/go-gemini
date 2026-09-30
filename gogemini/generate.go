@@ -49,6 +49,16 @@ func (c *Client) Generate(ctx context.Context, req *GenerateContentRequest) (*Re
 
 // encode validates req, applies the client's defaults to a copy and marshals it.
 func (c *Client) encode(req *GenerateContentRequest) ([]byte, error) {
+	r, err := c.prepare(req)
+	if err != nil {
+		return nil, err
+	}
+	return marshal(r)
+}
+
+// prepare validates req and returns a copy with the client's defaults applied;
+// the caller's request is never modified.
+func (c *Client) prepare(req *GenerateContentRequest) (*GenerateContentRequest, error) {
 	if req == nil || len(req.Contents) == 0 {
 		return nil, ErrEmptyRequest
 	}
@@ -59,11 +69,54 @@ func (c *Client) encode(req *GenerateContentRequest) ([]byte, error) {
 	if r.GenerationConfig == nil {
 		r.GenerationConfig = c.generationConfig
 	}
-	body, err := json.Marshal(&r)
+	if r.SafetySettings == nil && c.safetySettings != nil {
+		r.SafetySettings = *c.safetySettings
+	}
+	return &r, nil
+}
+
+func marshal(v any) ([]byte, error) {
+	body, err := json.Marshal(v)
 	if err != nil {
 		return nil, fmt.Errorf("gogemini: encode request: %w", err)
 	}
 	return body, nil
+}
+
+// countTokensRequest is the body of countTokens: the full request, with its model.
+type countTokensRequest struct {
+	Request modelRequest `json:"generateContentRequest"`
+}
+
+type modelRequest struct {
+	Model string `json:"model"`
+	*GenerateContentRequest
+}
+
+// CountTokens returns how many tokens req would use as a prompt, with the client's
+// defaults (system instruction, generation config, safety settings) applied, as
+// Generate would send it. It is retried like Generate.
+func (c *Client) CountTokens(ctx context.Context, req *GenerateContentRequest) (*CountTokensResponse, error) {
+	r, err := c.prepare(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := marshal(countTokensRequest{Request: modelRequest{Model: "models/" + c.model, GenerateContentRequest: r}})
+	if err != nil {
+		return nil, err
+	}
+	httpResp, release, err := c.send(ctx, ":countTokens", body, false)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
+	defer drainClose(httpResp)
+
+	var out CountTokensResponse
+	if err := json.NewDecoder(io.LimitReader(httpResp.Body, maxResponseBody)).Decode(&out); err != nil {
+		return nil, fmt.Errorf("gogemini: decode response: %w", err)
+	}
+	return &out, nil
 }
 
 // send POSTs body to the model's method and returns a 2xx response. The caller must

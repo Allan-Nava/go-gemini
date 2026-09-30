@@ -4,6 +4,8 @@
 //	go run ./examples/generate "Explain goroutines in one sentence"
 //	go run ./examples/generate -model gemini-3.5-flash-lite "Say hello"
 //	go run ./examples/generate -stream "Tell me a short story"
+//	go run ./examples/generate -image photo.png "What is in this picture?"
+//	go run ./examples/generate -count "How many tokens is this?"
 package main
 
 import (
@@ -11,6 +13,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -23,11 +26,13 @@ func main() {
 	timeout := flag.Duration("timeout", 5*time.Minute, "time limit for one attempt (for -stream: until the answer starts)")
 	stream := flag.Bool("stream", false, "print the answer as it is generated")
 	system := flag.String("system", "", "system instruction")
+	image := flag.String("image", "", "path of an image (PNG, JPEG, WebP, …) to send with the prompt")
+	count := flag.Bool("count", false, "only count the prompt's tokens")
 	flag.Parse()
 
 	prompt := strings.Join(flag.Args(), " ")
 	if prompt == "" {
-		fmt.Fprintln(os.Stderr, "usage: generate [-model name] [-timeout 5m] [-stream] [-system text] <prompt>")
+		fmt.Fprintln(os.Stderr, "usage: generate [-model name] [-timeout 5m] [-stream] [-system text] [-image file] [-count] <prompt>")
 		os.Exit(2)
 	}
 
@@ -41,9 +46,29 @@ func main() {
 		os.Exit(1)
 	}
 
+	parts := []gogemini.Part{gogemini.TextPart(prompt)}
+	if *image != "" {
+		data, err := os.ReadFile(*image)
+		if err != nil {
+			fail(err)
+		}
+		parts = append(parts, gogemini.InlineDataPart(http.DetectContentType(data), data))
+	}
+	req := &gogemini.GenerateContentRequest{Contents: []gogemini.Content{gogemini.UserContent(parts...)}}
+	ctx := context.Background()
+
+	if *count {
+		n, err := client.CountTokens(ctx, req)
+		if err != nil {
+			fail(err)
+		}
+		fmt.Println(n.TotalTokens, "tokens")
+		return
+	}
+
 	if *stream {
 		var last *gogemini.Response
-		for chunk, err := range client.GenerateContentStream(context.Background(), prompt) {
+		for chunk, err := range client.GenerateStream(ctx, req) {
 			if err != nil {
 				fail(err)
 			}
@@ -55,7 +80,7 @@ func main() {
 		return
 	}
 
-	resp, err := client.GenerateContent(context.Background(), prompt)
+	resp, err := client.Generate(ctx, req)
 	if err != nil {
 		fail(err)
 	}

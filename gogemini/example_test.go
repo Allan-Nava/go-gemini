@@ -2,6 +2,7 @@ package gogemini_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -172,4 +173,104 @@ func ExampleWithRetry() {
 	}
 	fmt.Println(client.Model() != "")
 	// Output: true
+}
+
+func ExampleInlineDataPart() {
+	srv := fakeGemini()
+	defer srv.Close()
+	client, err := gogemini.New(gogemini.WithAPIKey("YOUR_API_KEY"), gogemini.WithBaseURL(srv.URL))
+	if err != nil {
+		log.Fatal(err)
+	}
+	img := []byte("…the bytes of a PNG, e.g. from os.ReadFile…")
+	resp, err := client.Generate(context.Background(), &gogemini.GenerateContentRequest{
+		Contents: []gogemini.Content{gogemini.UserContent(
+			gogemini.TextPart("What is in this picture?"),
+			gogemini.InlineDataPart("image/png", img),
+		)},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(resp.Text() != "")
+	// Output: true
+}
+
+func ExampleJSONResponse() {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, `{"candidates":[{"content":{"parts":[{"text":"{\"name\":\"Ada Lovelace\",\"year\":1843}"}]}}]}`)
+	}))
+	defer srv.Close()
+	client, err := gogemini.New(gogemini.WithAPIKey("YOUR_API_KEY"), gogemini.WithBaseURL(srv.URL))
+	if err != nil {
+		log.Fatal(err)
+	}
+	schema := map[string]any{
+		"type": "object",
+		"properties": map[string]any{
+			"name": map[string]any{"type": "string"},
+			"year": map[string]any{"type": "integer"},
+		},
+		"required": []string{"name", "year"},
+	}
+	resp, err := client.Generate(context.Background(), &gogemini.GenerateContentRequest{
+		Contents:         []gogemini.Content{gogemini.UserContent(gogemini.TextPart("Who wrote the first published program, and when?"))},
+		GenerationConfig: &gogemini.GenerationConfig{ResponseFormat: gogemini.JSONResponse(schema)},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var answer struct {
+		Name string `json:"name"`
+		Year int    `json:"year"`
+	}
+	if err := json.Unmarshal([]byte(resp.Text()), &answer); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(answer.Name, answer.Year)
+	// Output: Ada Lovelace 1843
+}
+
+func ExampleClient_CountTokens() {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, `{"totalTokens":7}`)
+	}))
+	defer srv.Close()
+	client, err := gogemini.New(gogemini.WithAPIKey("YOUR_API_KEY"), gogemini.WithBaseURL(srv.URL))
+	if err != nil {
+		log.Fatal(err)
+	}
+	resp, err := client.CountTokens(context.Background(), &gogemini.GenerateContentRequest{
+		Contents: []gogemini.Content{gogemini.UserContent(gogemini.TextPart("How long is this prompt?"))},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(resp.TotalTokens, "tokens")
+	// Output: 7 tokens
+}
+
+func ExampleChat_SendStream() {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, piece := range []string{"Channels ", "connect ", "goroutines."} {
+			fmt.Fprintf(w, "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":%q}]}}]}\n\n", piece)
+		}
+	}))
+	defer srv.Close()
+	client, err := gogemini.New(gogemini.WithAPIKey("YOUR_API_KEY"), gogemini.WithBaseURL(srv.URL))
+	if err != nil {
+		log.Fatal(err)
+	}
+	chat := client.NewChat()
+	for chunk, err := range chat.SendStream(context.Background(), "What do channels do?") {
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Print(chunk.Text())
+	}
+	fmt.Println()
+	fmt.Println(chat.History()[1].Parts[0].Text) // the whole reply, kept for the next turn
+	// Output:
+	// Channels connect goroutines.
+	// Channels connect goroutines.
 }
