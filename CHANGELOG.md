@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [v1.1.0] — 2026-09-30
+
+Images and files, JSON output with a schema, safety settings, thinking, chat streaming and token
+counting. Only additions: `gorelease` against v1.0.0 finds no incompatible change.
+
 ### Added
 - Images and files: `Part.InlineData` (`Blob`, sent base64-encoded) and `Part.FileData` (`FileData`);
   `TextPart`, `InlineDataPart`, `FileDataPart`, `UserContent`; `Chat.SendParts`.
@@ -138,7 +143,8 @@ First working client, on the official Gemini API.
 
 - Skeleton of a Google Bard client (session cookie and `SNlM0e` token). Never sent a request.
 
-[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v1.0.0...main
+[Unreleased]: https://github.com/Allan-Nava/go-gemini/compare/v1.1.0...main
+[v1.1.0]: https://github.com/Allan-Nava/go-gemini/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.4.0...v1.0.0
 [v0.4.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/Allan-Nava/go-gemini/compare/v0.2.0...v0.3.0

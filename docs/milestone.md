@@ -9,7 +9,7 @@ audit: [`audit-v0.2.0-2026-09-29.md`](audit-v0.2.0-2026-09-29.md).
 > item tolto = chiusa come *not planned*). Gli `id` sono stabili: non rinominarli, o nasce una issue nuova.
 
 ```
-  v0.2.0 ─► v0.3.0 ─► v0.4.0 ─► v1.0.0 (rilasciata) ─► v1.1.0 (nuova) ─────────────► v1.2.0
+  v0.2.0 ─► v0.3.0 ─► v0.4.0 ─► v1.0.0 (rilasciata) ─► v1.1.0 (rilasciata) ────────► v1.2.0
   client    hardening  streaming  API congelata        immagini, sicurezza, JSON,     tool calling
   ufficiale            chat, retry                     thinking, chat stream, token
 ```
@@ -131,7 +131,7 @@ restano quelli originali, perché sono stabili.
 > (`version`, `defaultModel`) non più esportate, perché `apidiff` le tratta come incompatibili; gate CI su copertura
 > (≥ 90%, oggi 96,6%) e su `gorelease`; `CONTRIBUTING.md`, `SECURITY.md`, workflow `release.yml` dal changelog.
 
-## v1.1.0 — Multimodale, sicurezza e output strutturato (codice completo, in attesa del tag)
+## v1.1.0 — Multimodale, sicurezza e output strutturato (rilasciata, 2026-09-30)
 
 **Obiettivo:** coprire i casi d'uso più richiesti dopo il testo semplice (immagini e file, filtri di sicurezza, risposte JSON con schema, conteggio dei token), solo con aggiunte compatibili.
 
@@ -156,13 +156,16 @@ blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
 - [x] <!-- id:v110-count-tokens --> **Conteggio dei token**: `Client.CountTokens(ctx, req) (*CountTokensResponse, error)` su `:countTokens`
       con `generateContentRequest` (verificato: risposta `totalTokens`, `cachedContentTokenCount`); una struct e non un `int`, per poterla
       estendere. Stesso percorso di invio, retry e timeout.
-- [ ] <!-- id:v110-release --> **Rilascio v1.1.0**: `gorelease` senza cambiamenti incompatibili, prova reale a mano (testo, immagine, stream
+- [x] <!-- id:v110-release --> **Rilascio v1.1.0**: `gorelease` senza cambiamenti incompatibili, prova reale a mano (testo, immagine, stream
       della chat), `version` = `1.1.0`, changelog con data, tag — la release la crea il workflow.
 
 > **Avanzamento 2026-09-30**: sei item su sette nel codice. Nomi dei campi verificati sul riferimento ufficiale scaricato
 > (lì `responseSchema`/`responseJsonSchema` risultano deprecati → `responseFormat`). `gorelease` contro `v1.0.0` ha trovato due
 > rotture di confrontabilità (`Client`, `PromptFeedback`), corrette prima del commit: ora solo aggiunte, suggerita v1.1.0.
 > 11 mutazioni del codice nuovo, tutte intercettate. `Chat` ora rimanda le `thoughtSignature`.
+>
+> **Prova reale 2026-09-30**, eseguita a mano dall'utente su `gemini-3.5-flash-lite`: `CountTokens` → 8 token; un PNG di prova
+> generato apposta (cerchio rosso su bianco, nessun dato dell'utente) descritto correttamente, 1111 token. Tag `v1.1.0`.
 
 ## v1.2.0 — Tool calling
 
@@ -179,6 +182,7 @@ blocca qualsiasi cambiamento incompatibile. Nessuna dipendenza nuova.
 ## Storico
 
 - **v0.1.0** — scheletro del client Bard (cookie `__Secure-1PSID`, token `SNlM0e`); `GetAnswer()` mai implementato.
+- **v1.1.0** (2026-09-30) — immagini e file, output JSON con schema, sicurezza, thinking, chat in streaming, `CountTokens`. Vedi `CHANGELOG.md`.
 - **v1.0.0** (2026-09-29) — prima versione stabile: API congelata, timeout per tentativo (gli stream lunghi non vengono più tagliati). Vedi `CHANGELOG.md` e `api-review-v1.0.0-2026-09-29.md`.
 - **v0.4.0** (2026-09-29) — streaming, chat, parametri di generazione, retry con backoff, `golangci-lint`. Vedi `CHANGELOG.md`.
 - **v0.3.0** (2026-09-29) — hardening dall'audit v0.2.0 (la chiave resta sull'host dell'API), preparazione della v1.0.0. Vedi `CHANGELOG.md`.
